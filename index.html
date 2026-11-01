@@ -81,7 +81,6 @@
             if (docSnap.exists()) {
                 isRemoteUpdate = true;
                 const remoteData = docSnap.data();
-                // Nur updaten, wenn Daten da sind
                 window.cloudState = { ...window.cloudState, ...remoteData };
                 if (window.syncAlpineData) window.syncAlpineData();
                 isRemoteUpdate = false;
@@ -112,7 +111,7 @@
         <span x-text="toast.message"></span>
     </div>
 
-    <!-- Redegestalteter, moderner Header -->
+    <!-- Header -->
     <header class="bg-appdark-card/90 backdrop-blur-xl border-b border-appdark-border px-4 py-3.5 sticky top-0 z-40 flex items-center justify-between shadow-lg">
         <div class="flex items-center space-x-3">
             <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-900/30">
@@ -136,7 +135,6 @@
 
         <!-- ================= 1. DASHBOARD ================= -->
         <div x-show="currentTab === 'dashboard'" class="space-y-5" x-transition.opacity>
-            <!-- Hero Card -->
             <div class="bg-gradient-to-br from-appdark-card via-[#0e171255] to-emerald-950/40 border border-emerald-500/20 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
                 <div class="absolute -right-6 -bottom-6 text-emerald-900/15 text-9xl pointer-events-none">
                     <i class="fa-solid fa-route"></i>
@@ -148,7 +146,6 @@
                 </div>
             </div>
 
-            <!-- Wichtige Infos (Notizen) -->
             <div class="bg-appdark-card border border-appdark-border rounded-3xl p-5 shadow-xl space-y-3">
                 <div class="flex items-center justify-between">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
@@ -159,7 +156,6 @@
                 <p class="text-xs text-zinc-300 whitespace-pre-line leading-relaxed bg-black/40 p-4 rounded-2xl border border-appdark-border" x-text="importantInfo || 'Noch keine Notizen hinterlegt.'"></p>
             </div>
 
-            <!-- Statistik Grid -->
             <div class="grid grid-cols-3 gap-3">
                 <div class="bg-appdark-card border border-appdark-border rounded-2xl p-4 shadow-lg text-center">
                     <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Ausgaben</span>
@@ -175,7 +171,6 @@
                 </div>
             </div>
 
-            <!-- Schnell-Aktionen -->
             <div class="bg-appdark-card border border-appdark-border rounded-3xl p-5 shadow-xl space-y-3">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Schnell-Aktionen</h3>
                 <div class="grid grid-cols-2 gap-3">
@@ -196,10 +191,9 @@
                     <h2 class="text-lg font-extrabold text-white">GPX Routen & Karte 🗺️</h2>
                     <p class="text-xs text-zinc-400">Für alle sichtbar & herunterladbar</p>
                 </div>
-                <label class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 cursor-pointer flex items-center gap-2 transition active:scale-95">
+                <button @click="openUploaderModal('gpx')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 cursor-pointer flex items-center gap-2 transition active:scale-95">
                     <i class="fa-solid fa-cloud-arrow-up"></i> GPX hochladen
-                    <input type="file" accept=".gpx" class="hidden" @change="uploadGpx($event)">
-                </label>
+                </button>
             </div>
 
             <div class="bg-appdark-card border border-appdark-border rounded-3xl p-3 shadow-xl">
@@ -246,15 +240,26 @@
 
         <!-- ================= 3. GALERIE ================= -->
         <div x-show="currentTab === 'photos'" class="space-y-4" x-transition.opacity>
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between flex-wrap gap-2">
                 <div>
                     <h2 class="text-lg font-extrabold text-white">Gruppen-Galerie 📸</h2>
-                    <p class="text-xs text-zinc-400">Teilt eure Schnappschüsse direkt</p>
+                    <p class="text-xs text-zinc-400">Antippen zum Vergrößern</p>
                 </div>
-                <label class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 cursor-pointer flex items-center gap-2 transition active:scale-95">
-                    <i class="fa-solid fa-camera"></i> Foto hochladen
-                    <input type="file" accept="image/*" class="hidden" @change="uploadPhoto($event)">
-                </label>
+                <div class="flex items-center gap-2">
+                    <template x-if="photos.length > 0">
+                        <div class="flex items-center gap-2">
+                            <button @click="toggleSelectMode()" :class="isSelectMode ? 'bg-emerald-600 text-white' : 'bg-zinc-800 text-zinc-200'" class="px-3 py-2.5 rounded-2xl text-xs font-bold shadow transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-square-check"></i> <span x-text="isSelectMode ? 'Auswahl beenden' : 'Auswählen'"></span>
+                            </button>
+                            <button x-show="isSelectMode && selectedPhotoIds.length > 0" @click="downloadSelectedPhotos()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2.5 rounded-2xl text-xs font-bold shadow transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-download"></i> Laden (<span x-text="selectedPhotoIds.length"></span>)
+                            </button>
+                        </div>
+                    </template>
+                    <button @click="openUploaderModal('photo')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 cursor-pointer flex items-center gap-2 transition active:scale-95">
+                        <i class="fa-solid fa-camera"></i> Foto hochladen
+                    </button>
+                </div>
             </div>
 
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
@@ -264,8 +269,18 @@
                     </div>
                 </template>
                 <template x-for="photo in photos" :key="photo.id">
-                    <div class="bg-appdark-card border border-appdark-border rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between">
-                        <img :src="photo.url" class="w-full h-40 object-cover">
+                    <div class="bg-appdark-card border border-appdark-border rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between group relative">
+                        <!-- Checkbox für Mehrfachauswahl -->
+                        <div x-show="isSelectMode" class="absolute top-3 left-3 z-20">
+                            <input type="checkbox" :value="photo.id" @change="togglePhotoSelection(photo.id)" class="w-6 h-6 rounded-lg text-emerald-600 focus:ring-emerald-500 bg-black border-zinc-700 cursor-pointer">
+                        </div>
+
+                        <div class="relative overflow-hidden cursor-pointer" @click="if(isSelectMode) { togglePhotoSelection(photo.id); } else { activeLightbox = photo.url; }">
+                            <img :src="photo.url" class="w-full h-40 object-cover group-hover:scale-105 transition duration-300">
+                            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                <i class="fa-solid fa-magnifying-glass-plus text-white text-xl drop-shadow-md"></i>
+                            </div>
+                        </div>
                         <div class="p-3 flex items-center justify-between text-[11px] text-zinc-400 bg-black/50 border-t border-appdark-border">
                             <span class="font-bold text-zinc-300 truncate max-w-[90px]" x-text="photo.uploader"></span>
                             <div class="flex items-center gap-2.5">
@@ -421,7 +436,6 @@
                     <input type="text" x-model="membersInput" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-emerald-500 shadow-inner">
                 </div>
 
-                <!-- Fehlerkorrektur / Plus-Minus für Dosenbier & Kilometer -->
                 <div class="pt-4 border-t border-appdark-border space-y-3.5">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Werte korrigieren (Fehlerbehebung)</h3>
                     
@@ -481,7 +495,38 @@
         </div>
     </nav>
 
-    <!-- Modals -->
+    <!-- Lightbox Modal für Fotos -->
+    <div x-show="activeLightbox" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3" style="display: none;" @click="activeLightbox = null">
+        <div class="relative max-w-4xl w-full max-h-full flex flex-col items-center">
+            <button @click="activeLightbox = null" class="absolute -top-12 right-0 text-white bg-zinc-800 hover:bg-zinc-700 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <img :src="activeLightbox" class="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl border border-appdark-border">
+        </div>
+    </div>
+
+    <!-- Upload-Modal mit Uploader-Auswahl -->
+    <div x-show="openUploadModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
+        <div @click.outside="openUploadModal = false" class="bg-appdark-card border border-appdark-border rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+            <h3 class="text-sm font-extrabold text-white" x-text="uploadType === 'gpx' ? 'GPX-Route hochladen' : 'Foto hochladen'"></h3>
+            <div>
+                <label class="text-xs text-zinc-400 font-bold block mb-1.5">Wer lädt das hoch?</label>
+                <select x-model="selectedUploader" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
+                    <template x-for="m in members"><option :value="m" x-text="m"></option></template>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs text-zinc-400 font-bold block mb-1.5">Datei auswählen</label>
+                <input type="file" id="dynamicFileInput" :accept="uploadType === 'gpx' ? '.gpx' : 'image/*'" class="w-full bg-black border border-appdark-border rounded-2xl p-3 text-xs text-zinc-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500">
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button @click="openUploadModal = false" class="flex-1 bg-zinc-800 text-zinc-300 py-3 rounded-2xl text-xs font-bold">Abbrechen</button>
+                <button @click="processUpload()" class="flex-1 bg-emerald-600 text-white py-3 rounded-2xl text-xs font-bold shadow-lg">Hochladen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weitere Modals (Infos, Packliste, Einkauf, Ausgaben) -->
     <div x-show="openInfoModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
         <div @click.outside="openInfoModal = false" class="bg-appdark-card border border-appdark-border rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
             <h3 class="text-sm font-extrabold text-white">Wichtige Infos & Notizen bearbeiten</h3>
@@ -557,6 +602,12 @@
                 openAddPackModal: false,
                 openAddShoppingModal: false,
                 openAddExpenseModal: false,
+                openUploadModal: false,
+                uploadType: 'gpx',
+                selectedUploader: 'Fabian',
+                activeLightbox: null,
+                isSelectMode: false,
+                selectedPhotoIds: [],
                 newPack: { item: '', owner: '' },
                 packList: [],
                 shoppingItems: [],
@@ -599,6 +650,9 @@
                     this.expenses = state.expenses || this.expenses;
                     this.photos = state.photos || this.photos;
                     this.gpxRoutes = state.gpxRoutes || this.gpxRoutes;
+                    if(this.members.length > 0 && !this.members.includes(this.selectedUploader)) {
+                        this.selectedUploader = this.members[0];
+                    }
                 },
 
                 persist() {
@@ -642,49 +696,88 @@
                     }
                 },
 
-                uploadPhoto(event) {
-                    const file = event.target.files[0];
-                    if(!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        this.photos.unshift({
-                            id: Date.now(),
-                            url: e.target.result,
-                            uploader: this.members[0] || 'Mitglied'
-                        });
-                        this.persist();
-                        this.showToast('Foto hochgeladen! 📸');
-                    };
-                    reader.readAsDataURL(file);
+                openUploaderModal(type) {
+                    this.uploadType = type;
+                    if(this.members.length > 0) this.selectedUploader = this.members[0];
+                    this.openUploadModal = true;
                 },
+
+                processUpload() {
+                    const fileInput = document.getElementById('dynamicFileInput');
+                    if(!fileInput || !fileInput.files[0]) return;
+                    const file = fileInput.files[0];
+                    const reader = new FileReader();
+
+                    if(this.uploadType === 'photo') {
+                        reader.onload = (e) => {
+                            this.photos.unshift({
+                                id: Date.now(),
+                                url: e.target.result,
+                                uploader: this.selectedUploader
+                            });
+                            this.persist();
+                            this.openUploadModal = false;
+                            this.showToast('Foto erfolgreich hochgeladen! 📸');
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        reader.onload = (e) => {
+                            const gpxText = e.target.result;
+                            const parsedData = parseGpxText(gpxText);
+
+                            // Wir speichern nur eine reduzierte Punktemenge in der Cloud, um Speicher-Limits zu umgehen
+                            this.gpxRoutes.unshift({
+                                id: Date.now(),
+                                name: file.name.replace('.gpx', ''),
+                                dataUrl: 'data:text/xml;charset=utf-8,' + encodeURIComponent(gpxText),
+                                coords: parsedData.coords,
+                                distance: parsedData.distance,
+                                gain: parsedData.gain,
+                                loss: parsedData.loss,
+                                uploader: this.selectedUploader
+                            });
+                            this.persist();
+                            this.openUploadModal = false;
+                            this.showToast('GPX-Route analysiert & hochgeladen!');
+                            setTimeout(() => { initMap(); }, 200);
+                        };
+                        reader.readAsText(file);
+                    }
+                },
+
+                toggleSelectMode() {
+                    this.isSelectMode = !this.isSelectMode;
+                    if (!this.isSelectMode) this.selectedPhotoIds = [];
+                },
+
+                togglePhotoSelection(id) {
+                    if (this.selectedPhotoIds.includes(id)) {
+                        this.selectedPhotoIds = this.selectedPhotoIds.filter(item => item !== id);
+                    } else {
+                        this.selectedPhotoIds.push(id);
+                    }
+                },
+
+                downloadSelectedPhotos() {
+                    const selected = this.photos.filter(p => this.selectedPhotoIds.includes(p.id));
+                    selected.forEach((photo, index) => {
+                        setTimeout(() => {
+                            const a = document.createElement('a');
+                            a.href = photo.url;
+                            a.download = `urlaub-foto-${index + 1}.jpg`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                        }, index * 250);
+                    });
+                    this.showToast(selected.length + ' Fotos werden heruntergeladen...');
+                    this.isSelectMode = false;
+                    this.selectedPhotoIds = [];
+                },
+
                 deletePhoto(id) {
                     this.photos = this.photos.filter(p => p.id !== id);
                     this.persist();
-                },
-
-                uploadGpx(event) {
-                    const file = event.target.files[0];
-                    if(!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const gpxText = e.target.result;
-                        const parsedData = parseGpxText(gpxText);
-
-                        this.gpxRoutes.unshift({
-                            id: Date.now(),
-                            name: file.name.replace('.gpx', ''),
-                            dataUrl: 'data:text/xml;charset=utf-8,' + encodeURIComponent(gpxText),
-                            coords: parsedData.coords,
-                            distance: parsedData.distance,
-                            gain: parsedData.gain,
-                            loss: parsedData.loss,
-                            uploader: this.members[0] || 'Mitglied'
-                        });
-                        this.persist();
-                        this.showToast('GPX-Route analysiert & hochgeladen!');
-                        setTimeout(() => { initMap(); }, 200);
-                    };
-                    reader.readAsText(file);
                 },
 
                 deleteGpx(id) {
@@ -805,23 +898,31 @@
             }
         }
 
+        // Robuster GPX-Parser mit Downsampling (damit Firestore nicht überlastet wird)
         function parseGpxText(gpxString) {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(gpxString, "text/xml");
-            const pts = xmlDoc.querySelectorAll("trkpt, rtept");
+            const pts = xmlDoc.querySelectorAll("trkpt, rtept, wpt");
             const coords = [];
             let distance = 0;
             let gain = 0;
             let loss = 0;
             let prevPt = null;
+            let counter = 0;
 
             pts.forEach(pt => {
                 const lat = parseFloat(pt.getAttribute("lat"));
                 const lon = parseFloat(pt.getAttribute("lon"));
+                if (isNaN(lat) || isNaN(lon)) return;
+
                 const eleNode = pt.querySelector("ele");
                 const ele = eleNode ? parseFloat(eleNode.textContent) : null;
 
-                coords.path ? coords.push([lat, lon]) : coords.push([lat, lon]);
+                // Nur jeden 3. Punkt speichern, spart enorm Speicher in der Cloud bei riesigen Tracks
+                counter++;
+                if (counter % 3 === 0 || counter === 1) {
+                    coords.push([lat, lon]);
+                }
 
                 if (prevPt) {
                     const R = 6371e3;
