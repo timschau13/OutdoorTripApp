@@ -12,24 +12,17 @@
             theme: {
                 extend: {
                     colors: {
-                        forest: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            800: '#166534',
-                            900: '#14532d',
+                        nature: {
+                            50: '#f4fbf7',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
                         },
-                        brand: {
-                            dark: '#0a0f0d',
-                            card: '#121a16',
-                            border: '#1f2e24',
-                            accent: '#22c55e'
-                        },
-                        beer: {
-                            500: '#f59e0b',
-                            600: '#d97706',
+                        appdark: {
+                            bg: '#070b09',
+                            card: '#111914',
+                            border: '#1c2b22',
                         }
                     }
                 }
@@ -39,7 +32,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Font Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Leaflet CSS für GPX-Karten -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
@@ -68,19 +61,9 @@
             beerCount: 18,
             totalKm: 145,
             importantInfo: 'Treffpunkt morgens um 07:30 Uhr am Startpunkt. Helm- und Regenjackenpflicht!',
-            shoppingItems: [
-                { id: 1, name: 'Dosenbier (Export)', category: 'Getränke', completed: false },
-                { id: 2, name: 'Energieriegel & Gels', category: 'Essen', completed: false },
-                { id: 3, name: 'Kettenöl & Flickzeug', category: 'Sonstiges', completed: true }
-            ],
-            packList: [
-                { id: 1, item: 'Gaskocher + Topf', owner: 'Fabian', packed: true },
-                { id: 2, item: 'Erste-Hilfe-Set & Blasenpflaster', owner: 'Luis', packed: false },
-                { id: 3, item: 'Multitool & Kettendrücker', owner: 'Max', packed: false }
-            ],
-            expenses: [
-                { id: 1, title: 'Hüttenübernachtung', amount: 150.00, payer: 'Fabian' }
-            ],
+            shoppingItems: [],
+            packList: [],
+            expenses: [],
             photos: [],
             gpxRoutes: []
         };
@@ -97,7 +80,9 @@
         onSnapshot(doc(db, "grouptrip_outdoor", "daten"), (docSnap) => {
             if (docSnap.exists()) {
                 isRemoteUpdate = true;
-                window.cloudState = docSnap.data();
+                const remoteData = docSnap.data();
+                // Nur updaten, wenn Daten da sind
+                window.cloudState = { ...window.cloudState, ...remoteData };
                 if (window.syncAlpineData) window.syncAlpineData();
                 isRemoteUpdate = false;
             }
@@ -110,7 +95,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0a0f0d; color: #f1f5f9; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #070b09; color: #f3f4f6; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -121,83 +106,84 @@
     <div x-show="toast.show" 
          x-transition:enter="transition ease-out duration-300"
          x-transition:leave="transition ease-in duration-200"
-         class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-forest-600 text-white px-5 py-2.5 rounded-2xl shadow-2xl text-xs font-semibold flex items-center space-x-2 border border-forest-500/50 backdrop-blur-md"
+         class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs font-bold flex items-center space-x-2 border border-emerald-400/30 backdrop-blur-md"
          style="display: none;">
-        <i class="fa-solid fa-circle-check text-emerald-300"></i>
+        <i class="fa-solid fa-circle-check text-emerald-200 text-sm"></i>
         <span x-text="toast.message"></span>
     </div>
 
-    <!-- Header -->
-    <header class="bg-brand-card/90 backdrop-blur-md border-b border-brand-border px-4 py-3.5 sticky top-0 z-40 flex items-center justify-between shadow-sm">
+    <!-- Redegestalteter, moderner Header -->
+    <header class="bg-appdark-card/90 backdrop-blur-xl border-b border-appdark-border px-4 py-3.5 sticky top-0 z-40 flex items-center justify-between shadow-lg">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-forest-600 to-forest-800 flex items-center justify-center text-white shadow-inner border border-forest-500/30">
-                <i class="fa-solid fa-person-hiking text-base"></i>
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-900/30">
+                <i class="fa-solid fa-compass text-lg"></i>
             </div>
             <div>
-                <h1 class="font-bold text-sm tracking-tight text-white flex items-center gap-2">
+                <h1 class="font-extrabold text-sm tracking-wide text-white flex items-center gap-2">
                     <span x-text="tripName"></span>
-                    <span class="text-[9px] bg-forest-900/80 text-forest-400 font-medium px-2 py-0.5 rounded-full border border-forest-700/50">Live Sync</span>
+                    <span class="text-[9px] bg-emerald-950 text-emerald-400 font-bold px-2 py-0.5 rounded-full border border-emerald-800/60 uppercase">Live Sync</span>
                 </h1>
-                <p class="text-[11px] text-slate-400 font-medium"><span x-text="members.length"></span> Teilnehmer</p>
+                <p class="text-[11px] text-emerald-500/80 font-medium"><span x-text="members.length"></span> Crew-Mitglieder aktiv</p>
             </div>
         </div>
-        <button @click="currentTab = 'settings'" class="w-9 h-9 rounded-xl bg-brand-border/50 border border-brand-border flex items-center justify-center text-slate-300 hover:text-white transition">
-            <i class="fa-solid fa-gear text-xs"></i>
+        <button @click="currentTab = 'settings'" class="w-10 h-10 rounded-2xl bg-appdark-border/60 border border-emerald-500/20 flex items-center justify-center text-emerald-400 hover:bg-emerald-500/10 transition shadow-inner">
+            <i class="fa-solid fa-sliders text-xs"></i>
         </button>
     </header>
 
     <!-- Hauptinhalt -->
-    <main class="flex-1 overflow-y-auto pb-28 pt-4 px-3 sm:px-6 max-w-3xl mx-auto w-full space-y-4">
+    <main class="flex-1 overflow-y-auto pb-32 pt-5 px-4 sm:px-6 max-w-3xl mx-auto w-full space-y-5">
 
         <!-- ================= 1. DASHBOARD ================= -->
-        <div x-show="currentTab === 'dashboard'" class="space-y-4" x-transition.opacity>
-            <div class="bg-gradient-to-br from-brand-card to-[#0d1611] border border-brand-border rounded-3xl p-5 shadow-xl relative overflow-hidden">
-                <div class="absolute -right-4 -bottom-4 text-forest-900/20 text-8xl pointer-events-none">
-                    <i class="fa-solid fa-mountain-sun"></i>
+        <div x-show="currentTab === 'dashboard'" class="space-y-5" x-transition.opacity>
+            <!-- Hero Card -->
+            <div class="bg-gradient-to-br from-appdark-card via-[#0e171255] to-emerald-950/40 border border-emerald-500/20 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 text-emerald-900/15 text-9xl pointer-events-none">
+                    <i class="fa-solid fa-route"></i>
                 </div>
-                <div class="relative z-10">
-                    <span class="text-[10px] font-bold tracking-widest text-forest-400 uppercase">Outdoor Abenteuer 🌲</span>
-                    <h2 class="text-lg font-extrabold text-white mt-1" x-text="tripName"></h2>
-                    <p class="text-xs text-slate-400 mt-1">Gemeinsame Routen, Ausgaben, Packliste & Live-Statistiken.</p>
+                <div class="relative z-10 space-y-2">
+                    <span class="text-[10px] font-extrabold tracking-widest text-emerald-400 uppercase bg-emerald-900/40 px-2.5 py-1 rounded-lg border border-emerald-700/40">Basecamp 🌲</span>
+                    <h2 class="text-xl font-black text-white tracking-tight" x-text="tripName"></h2>
+                    <p class="text-xs text-zinc-400 leading-relaxed">Alles im Blick für euren gemeinsamen Trip. Routen, Ausgaben und Crew-Updates synchronisieren sich sofort.</p>
                 </div>
             </div>
 
-            <!-- Wichtige Infos -->
-            <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg space-y-2">
+            <!-- Wichtige Infos (Notizen) -->
+            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-5 shadow-xl space-y-3">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-forest-400 flex items-center gap-2">
-                        <i class="fa-solid fa-circle-info"></i> Wichtige Infos & News
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                        <i class="fa-solid fa-bullhorn text-sm"></i> Wichtige Notizen & Infos
                     </h3>
-                    <button @click="openInfoModal = true" class="text-xs text-slate-400 hover:text-white transition">Bearbeiten</button>
+                    <button @click="openInfoModal = true" class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-xl font-bold hover:bg-emerald-500/20 transition">Bearbeiten</button>
                 </div>
-                <p class="text-xs text-slate-300 whitespace-pre-line leading-relaxed bg-black/30 p-3 rounded-xl border border-brand-border/60" x-text="importantInfo || 'Keine Infos hinterlegt.'"></p>
+                <p class="text-xs text-zinc-300 whitespace-pre-line leading-relaxed bg-black/40 p-4 rounded-2xl border border-appdark-border" x-text="importantInfo || 'Noch keine Notizen hinterlegt.'"></p>
             </div>
 
             <!-- Statistik Grid -->
-            <div class="grid grid-cols-3 gap-2.5">
-                <div class="bg-brand-card border border-brand-border rounded-2xl p-3.5 shadow-sm">
-                    <span class="text-[11px] text-slate-400 font-medium">Ausgaben</span>
-                    <div class="text-base font-bold text-white mt-1" x-text="totalExpenses.toFixed(2) + ' €'"></div>
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-appdark-card border border-appdark-border rounded-2xl p-4 shadow-lg text-center">
+                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Ausgaben</span>
+                    <div class="text-base font-extrabold text-white mt-1.5" x-text="totalExpenses.toFixed(2) + ' €'"></div>
                 </div>
-                <div class="bg-brand-card border border-brand-border rounded-2xl p-3.5 shadow-sm">
-                    <span class="text-[11px] text-slate-400 font-medium">Kilometer 🚴‍♂️</span>
-                    <div class="text-base font-bold text-forest-400 mt-1" x-text="totalKm + ' km'"></div>
+                <div class="bg-appdark-card border border-appdark-border rounded-2xl p-4 shadow-lg text-center">
+                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Kilometer</span>
+                    <div class="text-base font-extrabold text-emerald-400 mt-1.5" x-text="totalKm + ' km'"></div>
                 </div>
-                <div class="bg-brand-card border border-brand-border rounded-2xl p-3.5 shadow-sm">
-                    <span class="text-[11px] text-slate-400 font-medium">Dosenbier 🍺</span>
-                    <div class="text-base font-bold text-amber-400 mt-1" x-text="beerCount"></div>
+                <div class="bg-appdark-card border border-appdark-border rounded-2xl p-4 shadow-lg text-center">
+                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Dosenbier</span>
+                    <div class="text-base font-extrabold text-amber-400 mt-1.5" x-text="beerCount"></div>
                 </div>
             </div>
 
             <!-- Schnell-Aktionen -->
-            <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg space-y-3">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Schnell-Aktionen</h3>
-                <div class="grid grid-cols-2 gap-2">
-                    <button @click="incrementBeer()" class="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-xl py-3 px-3 flex items-center justify-center gap-2 transition active:scale-95 font-bold text-xs">
-                        <i class="fa-solid fa-beer-mug-empty"></i> +1 Dosenbier
+            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-5 shadow-xl space-y-3">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Schnell-Aktionen</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <button @click="incrementBeer()" class="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2.5 transition active:scale-95 font-extrabold text-xs shadow-md">
+                        <i class="fa-solid fa-beer-mug-empty text-sm"></i> +1 Dosenbier
                     </button>
-                    <button @click="promptAddKm()" class="bg-forest-600/10 hover:bg-forest-600/20 border border-forest-500/30 text-forest-400 rounded-xl py-3 px-3 flex items-center justify-center gap-2 transition active:scale-95 font-bold text-xs">
-                        <i class="fa-solid fa-route"></i> + Kilometer
+                    <button @click="promptAddKm()" class="bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2.5 transition active:scale-95 font-extrabold text-xs shadow-md">
+                        <i class="fa-solid fa-route text-sm"></i> + Kilometer
                     </button>
                 </div>
             </div>
@@ -207,48 +193,50 @@
         <div x-show="currentTab === 'gpx'" class="space-y-4" x-transition.opacity>
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-white">GPX Routen & Karte 🗺️</h2>
-                    <p class="text-xs text-slate-400">Tippe auf eine Route, um Details anzuzeigen</p>
+                    <h2 class="text-lg font-extrabold text-white">GPX Routen & Karte 🗺️</h2>
+                    <p class="text-xs text-zinc-400">Für alle sichtbar & herunterladbar</p>
                 </div>
-                <label class="bg-forest-600 hover:bg-forest-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow cursor-pointer flex items-center gap-1.5 transition">
-                    <i class="fa-solid fa-upload"></i> GPX hochladen
+                <label class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 cursor-pointer flex items-center gap-2 transition active:scale-95">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> GPX hochladen
                     <input type="file" accept=".gpx" class="hidden" @change="uploadGpx($event)">
                 </label>
             </div>
 
-            <div class="bg-brand-card border border-brand-border rounded-2xl p-2 shadow-lg">
-                <div id="map" class="w-full h-64 rounded-xl z-10"></div>
+            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-3 shadow-xl">
+                <div id="map" class="w-full h-72 rounded-2xl z-10 border border-appdark-border"></div>
             </div>
 
-            <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg space-y-3">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Verfügbare Tracks (<span x-text="gpxRoutes.length"></span>)</h3>
+            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-5 shadow-xl space-y-3">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Verfügbare Tracks (<span x-text="gpxRoutes.length"></span>)</h3>
                 <template x-if="gpxRoutes.length === 0">
-                    <div class="text-xs text-slate-500 py-4 text-center">Noch keine GPX-Dateien hochgeladen.</div>
+                    <div class="text-xs text-zinc-500 py-6 text-center">Noch keine GPX-Dateien in der Cloud. Lade als Erster eine hoch!</div>
                 </template>
-                <div class="space-y-2">
+                <div class="space-y-3">
                     <template x-for="route in gpxRoutes" :key="route.id">
                         <div @click="selectRoute(route)" 
-                             :class="selectedRouteId === route.id ? 'border-forest-500 bg-forest-950/30' : 'border-brand-border bg-black/40'"
-                             class="border rounded-xl p-3 flex items-center justify-between text-xs cursor-pointer transition hover:border-forest-600">
-                            <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 rounded-xl bg-forest-900 border border-forest-700 flex items-center justify-center text-forest-400 font-bold shrink-0">
-                                    <i class="fa-solid fa-route"></i>
+                             :class="selectedRouteId === route.id ? 'border-emerald-500 bg-emerald-950/20' : 'border-appdark-border bg-black/40'"
+                             class="border rounded-2xl p-4 flex items-center justify-between text-xs cursor-pointer transition hover:border-emerald-600/60 shadow-md">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-10 h-10 rounded-2xl bg-emerald-900/50 border border-emerald-600/40 flex items-center justify-center text-emerald-400 font-bold shrink-0 shadow-inner">
+                                    <i class="fa-solid fa-map-location-dot"></i>
                                 </div>
                                 <div>
-                                    <div class="font-bold text-white text-sm" x-text="route.name"></div>
-                                    <div class="text-[11px] text-forest-400 font-semibold mt-0.5">
-                                        <span x-text="route.distance + ' km'"></span> • 
-                                        <i class="fa-solid fa-arrow-trend-up"></i> <span x-text="route.gain + ' m'"></span> • 
-                                        <i class="fa-solid fa-arrow-trend-down"></i> <span x-text="route.loss + ' m'"></span>
+                                    <div class="font-extrabold text-white text-sm" x-text="route.name"></div>
+                                    <div class="text-[11px] text-emerald-400 font-bold mt-1 flex items-center gap-2">
+                                        <span><i class="fa-solid fa-road"></i> <span x-text="route.distance + ' km'"></span></span>
+                                        <span>•</span>
+                                        <span><i class="fa-solid fa-arrow-trend-up"></i> <span x-text="route.gain + ' m'"></span></span>
+                                        <span>•</span>
+                                        <span><i class="fa-solid fa-arrow-trend-down"></i> <span x-text="route.loss + ' m'"></span></span>
                                     </div>
-                                    <div class="text-[9px] text-slate-400 mt-0.5" x-text="'Von ' + route.uploader"></div>
+                                    <div class="text-[10px] text-zinc-400 mt-1">Hochgeladen von <span class="text-zinc-200 font-semibold" x-text="route.uploader"></span></div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2" @click.stop>
-                                <a :href="route.dataUrl" :download="route.name + '.gpx'" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg font-semibold text-[11px] transition flex items-center gap-1">
+                                <a :href="route.dataUrl" :download="route.name + '.gpx'" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 p-2.5 rounded-xl font-semibold text-xs transition flex items-center gap-1 shadow" title="GPX Herunterladen">
                                     <i class="fa-solid fa-download"></i>
                                 </a>
-                                <button @click="deleteGpx(route.id)" class="text-slate-600 hover:text-red-400 p-1.5"><i class="fa-solid fa-trash-can"></i></button>
+                                <button @click="deleteGpx(route.id)" class="text-zinc-600 hover:text-red-400 p-2.5 transition"><i class="fa-solid fa-trash-can"></i></button>
                             </div>
                         </div>
                     </template>
@@ -260,31 +248,31 @@
         <div x-show="currentTab === 'photos'" class="space-y-4" x-transition.opacity>
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-white">Gruppen-Galerie 📸</h2>
-                    <p class="text-xs text-slate-400">Hochladen und direkt herunterladen</p>
+                    <h2 class="text-lg font-extrabold text-white">Gruppen-Galerie 📸</h2>
+                    <p class="text-xs text-zinc-400">Teilt eure Schnappschüsse direkt</p>
                 </div>
-                <label class="bg-forest-600 hover:bg-forest-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow cursor-pointer flex items-center gap-1.5 transition">
+                <label class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 cursor-pointer flex items-center gap-2 transition active:scale-95">
                     <i class="fa-solid fa-camera"></i> Foto hochladen
                     <input type="file" accept="image/*" class="hidden" @change="uploadPhoto($event)">
                 </label>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
                 <template x-if="photos.length === 0">
-                    <div class="col-span-full text-center py-12 text-slate-500 text-xs bg-brand-card border border-brand-border rounded-2xl">
-                        Noch keine Fotos hochgeladen.
+                    <div class="col-span-full text-center py-16 text-zinc-500 text-xs bg-appdark-card border border-appdark-border rounded-3xl">
+                        Noch keine Fotos hochgeladen. Sei der Erste!
                     </div>
                 </template>
                 <template x-for="photo in photos" :key="photo.id">
-                    <div class="bg-brand-card border border-brand-border rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between">
-                        <img :src="photo.url" class="w-full h-36 object-cover">
-                        <div class="p-2.5 flex items-center justify-between text-[10px] text-slate-400 bg-black/40">
-                            <span class="font-semibold text-slate-300" x-text="photo.uploader"></span>
-                            <div class="flex items-center gap-2">
-                                <a :href="photo.url" download="urlaub-foto.jpg" class="text-forest-400 hover:text-white p-1" title="Herunterladen">
+                    <div class="bg-appdark-card border border-appdark-border rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between">
+                        <img :src="photo.url" class="w-full h-40 object-cover">
+                        <div class="p-3 flex items-center justify-between text-[11px] text-zinc-400 bg-black/50 border-t border-appdark-border">
+                            <span class="font-bold text-zinc-300 truncate max-w-[90px]" x-text="photo.uploader"></span>
+                            <div class="flex items-center gap-2.5">
+                                <a :href="photo.url" download="urlaub-foto.jpg" class="text-emerald-400 hover:text-white p-1.5 transition" title="Herunterladen">
                                     <i class="fa-solid fa-download"></i>
                                 </a>
-                                <button @click="deletePhoto(photo.id)" class="text-slate-600 hover:text-red-400 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                                <button @click="deletePhoto(photo.id)" class="text-zinc-600 hover:text-red-400 p-1.5 transition"><i class="fa-solid fa-trash-can"></i></button>
                             </div>
                         </div>
                     </div>
@@ -296,28 +284,28 @@
         <div x-show="currentTab === 'packlist'" class="space-y-4" x-transition.opacity>
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-white">Outdoor Packliste 🎒</h2>
-                    <p class="text-xs text-slate-400">Wer bringt was mit</p>
+                    <h2 class="text-lg font-extrabold text-white">Outdoor Packliste 🎒</h2>
+                    <p class="text-xs text-zinc-400">Wer bringt was mit?</p>
                 </div>
-                <button @click="openAddPackModal = true" class="bg-forest-600 hover:bg-forest-500 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow flex items-center gap-1.5 transition">
+                <button @click="openAddPackModal = true" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 flex items-center gap-2 transition active:scale-95">
                     <i class="fa-solid fa-plus"></i> Gegenstand
                 </button>
             </div>
 
-            <div class="bg-brand-card border border-brand-border rounded-2xl p-3 shadow-lg divide-y divide-brand-border">
+            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-4 shadow-xl divide-y divide-appdark-border">
                 <template x-if="packList.length === 0">
-                    <div class="py-6 text-center text-slate-500 text-xs">Die Packliste ist leer.</div>
+                    <div class="py-8 text-center text-zinc-500 text-xs">Die Packliste ist aktuell leer.</div>
                 </template>
                 <template x-for="item in packList" :key="item.id">
-                    <div class="py-2.5 flex items-center justify-between">
-                        <label class="flex items-center space-x-3 cursor-pointer flex-1 mr-2">
-                            <input type="checkbox" @change="togglePackItem(item.id)" :checked="item.packed" class="w-4 h-4 rounded text-forest-600 focus:ring-forest-500 bg-black border-slate-700">
+                    <div class="py-3 flex items-center justify-between">
+                        <label class="flex items-center space-x-3.5 cursor-pointer flex-1 mr-3">
+                            <input type="checkbox" @change="togglePackItem(item.id)" :checked="item.packed" class="w-5 h-5 rounded-lg text-emerald-600 focus:ring-emerald-500 bg-black border-zinc-700">
                             <div>
-                                <div :class="item.packed ? 'line-through text-slate-600' : 'text-white'" class="text-xs font-bold transition" x-text="item.item"></div>
-                                <div class="text-[10px] text-slate-400">Besorgt von: <span class="text-forest-400 font-semibold" x-text="item.owner"></span></div>
+                                <div :class="item.packed ? 'line-through text-zinc-600' : 'text-white'" class="text-xs font-bold transition" x-text="item.item"></div>
+                                <div class="text-[10px] text-zinc-400 mt-0.5">Besorgt von: <span class="text-emerald-400 font-bold" x-text="item.owner"></span></div>
                             </div>
                         </label>
-                        <button @click="deletePackItem(item.id)" class="text-slate-600 hover:text-red-400 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                        <button @click="deletePackItem(item.id)" class="text-zinc-600 hover:text-red-400 p-2 transition"><i class="fa-solid fa-trash-can text-xs"></i></button>
                     </div>
                 </template>
             </div>
@@ -327,24 +315,27 @@
         <div x-show="currentTab === 'shopping'" class="space-y-4" x-transition.opacity>
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-white">Einkaufsliste 🛒</h2>
-                    <p class="text-xs text-slate-400">Proviant für unterwegs</p>
+                    <h2 class="text-lg font-extrabold text-white">Einkaufsliste 🛒</h2>
+                    <p class="text-xs text-zinc-400">Proviant & Verpflegung</p>
                 </div>
-                <button @click="openAddShoppingModal = true" class="bg-forest-600 hover:bg-forest-500 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow flex items-center gap-1.5 transition">
+                <button @click="openAddShoppingModal = true" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 flex items-center gap-2 transition active:scale-95">
                     <i class="fa-solid fa-plus"></i> Artikel
                 </button>
             </div>
 
-            <div class="bg-brand-card border border-brand-border rounded-2xl p-3 shadow-lg divide-y divide-brand-border">
+            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-4 shadow-xl divide-y divide-appdark-border">
+                <template x-if="shoppingItems.length === 0">
+                    <div class="py-8 text-center text-zinc-500 text-xs">Keine Artikel auf der Einkaufsliste.</div>
+                </template>
                 <template x-for="item in shoppingItems" :key="item.id">
-                    <div class="py-2.5 flex items-center justify-between">
-                        <label class="flex items-center space-x-3 cursor-pointer flex-1 mr-2">
-                            <input type="checkbox" @change="toggleShoppingItem(item.id)" :checked="item.completed" class="w-4 h-4 rounded text-forest-600 focus:ring-forest-500 bg-black border-slate-700">
-                            <div :class="item.completed ? 'line-through text-slate-600' : 'text-white'" class="text-xs font-medium transition" x-text="item.name"></div>
+                    <div class="py-3 flex items-center justify-between">
+                        <label class="flex items-center space-x-3.5 cursor-pointer flex-1 mr-3">
+                            <input type="checkbox" @change="toggleShoppingItem(item.id)" :checked="item.completed" class="w-5 h-5 rounded-lg text-emerald-600 focus:ring-emerald-500 bg-black border-zinc-700">
+                            <div :class="item.completed ? 'line-through text-zinc-600' : 'text-white'" class="text-xs font-semibold transition" x-text="item.name"></div>
                         </label>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-[10px] bg-brand-border text-slate-300 px-2 py-0.5 rounded-lg" x-text="item.category"></span>
-                            <button @click="deleteShoppingItem(item.id)" class="text-slate-600 hover:text-red-400 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-[10px] bg-black/60 border border-appdark-border text-zinc-300 px-2.5 py-1 rounded-xl font-medium" x-text="item.category"></span>
+                            <button @click="deleteShoppingItem(item.id)" class="text-zinc-600 hover:text-red-400 p-2 transition"><i class="fa-solid fa-trash-can text-xs"></i></button>
                         </div>
                     </div>
                 </template>
@@ -355,57 +346,60 @@
         <div x-show="currentTab === 'costs'" class="space-y-4" x-transition.opacity>
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-white">Kostenaufteilung 💶</h2>
-                    <p class="text-xs text-slate-400">Automatische Ausgleichsberechnung</p>
+                    <h2 class="text-lg font-extrabold text-white">Kostenaufteilung 💶</h2>
+                    <p class="text-xs text-zinc-400">Splid-Style Ausgleich</p>
                 </div>
-                <button @click="openAddExpenseModal = true" class="bg-forest-600 hover:bg-forest-500 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow flex items-center gap-1.5 transition">
+                <button @click="openAddExpenseModal = true" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 flex items-center gap-2 transition active:scale-95">
                     <i class="fa-solid fa-plus"></i> Ausgabe
                 </button>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow">
-                    <span class="text-[11px] text-slate-400 font-medium">Gesamtausgaben</span>
-                    <div class="text-lg font-bold text-white mt-1" x-text="totalExpenses.toFixed(2) + ' €'"></div>
+            <div class="grid grid-cols-2 gap-3.5">
+                <div class="bg-appdark-card border border-appdark-border rounded-3xl p-4 shadow-xl">
+                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Gesamtausgaben</span>
+                    <div class="text-lg font-extrabold text-white mt-1.5" x-text="totalExpenses.toFixed(2) + ' €'"></div>
                 </div>
-                <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow">
-                    <span class="text-[11px] text-slate-400 font-medium">Pro Kopf</span>
-                    <div class="text-lg font-bold text-forest-400 mt-1" x-text="perPersonAverage.toFixed(2) + ' €'"></div>
+                <div class="bg-appdark-card border border-appdark-border rounded-3xl p-4 shadow-xl">
+                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Pro Kopf</span>
+                    <div class="text-lg font-extrabold text-emerald-400 mt-1.5" x-text="perPersonAverage.toFixed(2) + ' €'"></div>
                 </div>
             </div>
 
-            <div class="bg-brand-card border border-forest-500/30 rounded-2xl p-4 shadow-lg space-y-3">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-forest-400 flex items-center gap-2">
+            <div class="bg-appdark-card border border-emerald-500/30 rounded-3xl p-5 shadow-xl space-y-3">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
                     <i class="fa-solid fa-handshake"></i> Einfachster Ausgleich
                 </h3>
-                <div class="space-y-2">
+                <div class="space-y-2.5">
                     <template x-if="calculateSettlements().length === 0">
-                        <div class="text-xs text-slate-500 py-2">Alles ausgeglichen!</div>
+                        <div class="text-xs text-zinc-500 py-3 text-center">Alles perfekt ausgeglichen!</div>
                     </template>
                     <template x-for="s in calculateSettlements()">
-                        <div class="bg-black/40 border border-brand-border rounded-xl p-3 flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-white" x-text="s.from"></span>
-                                <i class="fa-solid fa-arrow-right text-forest-500"></i>
-                                <span class="font-bold text-white" x-text="s.to"></span>
+                        <div class="bg-black/50 border border-appdark-border rounded-2xl p-3.5 flex items-center justify-between text-xs shadow-inner">
+                            <div class="flex items-center gap-2.5 font-bold text-white">
+                                <span x-text="s.from"></span>
+                                <i class="fa-solid fa-arrow-right text-emerald-500 text-[10px]"></i>
+                                <span x-text="s.to"></span>
                             </div>
-                            <span class="font-black text-forest-400 bg-forest-900/60 border border-forest-700 px-2.5 py-1 rounded-lg text-sm" x-text="s.amount.toFixed(2) + ' €'"></span>
+                            <span class="font-black text-emerald-400 bg-emerald-950/80 border border-emerald-800 px-3 py-1.5 rounded-xl text-xs" x-text="s.amount.toFixed(2) + ' €'"></span>
                         </div>
                     </template>
                 </div>
             </div>
 
-            <div class="bg-brand-card border border-brand-border rounded-2xl p-4 shadow-lg space-y-3">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Alle Ausgaben</h3>
+            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-5 shadow-xl space-y-3">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Alle erfassten Ausgaben</h3>
+                <template x-if="expenses.length === 0">
+                    <div class="py-4 text-center text-zinc-500 text-xs">Noch keine Ausgaben eingetragen.</div>
+                </template>
                 <template x-for="exp in expenses" :key="exp.id">
-                    <div class="bg-black/30 border border-brand-border rounded-xl p-3 flex items-center justify-between text-xs">
+                    <div class="bg-black/40 border border-appdark-border rounded-2xl p-3.5 flex items-center justify-between text-xs">
                         <div>
-                            <div class="font-bold text-white" x-text="exp.title"></div>
-                            <div class="text-[10px] text-slate-400">Bezahlt von <span class="text-forest-400 font-semibold" x-text="exp.payer"></span></div>
+                            <div class="font-extrabold text-white" x-text="exp.title"></div>
+                            <div class="text-[10px] text-zinc-400 mt-0.5">Bezahlt von <span class="text-emerald-400 font-bold" x-text="exp.payer"></span></div>
                         </div>
                         <div class="flex items-center space-x-3">
-                            <span class="font-bold text-white" x-text="exp.amount.toFixed(2) + ' €'"></span>
-                            <button @click="deleteExpense(exp.id)" class="text-slate-600 hover:text-red-400"><i class="fa-solid fa-trash-can"></i></button>
+                            <span class="font-extrabold text-white text-sm" x-text="exp.amount.toFixed(2) + ' €'"></span>
+                            <button @click="deleteExpense(exp.id)" class="text-zinc-600 hover:text-red-400 p-1.5 transition"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>
                 </template>
@@ -414,43 +408,43 @@
 
         <!-- ================= 7. EINSTELLUNGEN ================= -->
         <div x-show="currentTab === 'settings'" class="space-y-4" x-transition.opacity>
-            <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
-                <h2 class="text-base font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-gear text-forest-400"></i> Urlaub & Crew anpassen
+            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-6 shadow-2xl space-y-5">
+                <h2 class="text-base font-extrabold text-white flex items-center gap-2.5">
+                    <i class="fa-solid fa-sliders text-emerald-400"></i> Einstellungen & Crew
                 </h2>
                 <div>
-                    <label class="text-xs text-slate-400 font-medium block mb-1">Name des Urlaubs</label>
-                    <input type="text" x-model="tripName" class="w-full bg-black border border-brand-border rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-forest-600">
+                    <label class="text-xs text-zinc-400 font-bold block mb-1.5">Name des Urlaubs</label>
+                    <input type="text" x-model="tripName" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-emerald-500 shadow-inner">
                 </div>
                 <div>
-                    <label class="text-xs text-slate-400 font-medium block mb-1">Teilnehmer (mit Komma getrennt)</label>
-                    <input type="text" x-model="membersInput" class="w-full bg-black border border-brand-border rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-forest-600">
+                    <label class="text-xs text-zinc-400 font-bold block mb-1.5">Teilnehmer (mit Komma getrennt)</label>
+                    <input type="text" x-model="membersInput" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-emerald-500 shadow-inner">
                 </div>
 
                 <!-- Fehlerkorrektur / Plus-Minus für Dosenbier & Kilometer -->
-                <div class="pt-3 border-t border-brand-border space-y-3">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Werte korrigieren (Fehlerbehebung)</h3>
+                <div class="pt-4 border-t border-appdark-border space-y-3.5">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Werte korrigieren (Fehlerbehebung)</h3>
                     
-                    <div class="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-brand-border">
-                        <span class="text-xs text-slate-300 font-medium">Dosenbier-Stand (🍺)</span>
-                        <div class="flex items-center gap-2">
-                            <button @click="if(beerCount > 0) beerCount--; persist();" class="w-7 h-7 bg-brand-border text-white rounded-lg font-bold flex items-center justify-center hover:bg-slate-700">-</button>
-                            <span class="text-xs font-bold text-amber-400 w-6 text-center" x-text="beerCount"></span>
-                            <button @click="beerCount++; persist();" class="w-7 h-7 bg-brand-border text-white rounded-lg font-bold flex items-center justify-center hover:bg-slate-700">+</button>
+                    <div class="flex items-center justify-between bg-black/50 p-3.5 rounded-2xl border border-appdark-border">
+                        <span class="text-xs text-zinc-300 font-bold">Dosenbier-Stand (🍺)</span>
+                        <div class="flex items-center gap-3">
+                            <button @click="if(beerCount > 0) beerCount--; persist();" class="w-8 h-8 bg-zinc-800 text-white rounded-xl font-bold flex items-center justify-center hover:bg-zinc-700 transition">-</button>
+                            <span class="text-xs font-extrabold text-amber-400 w-8 text-center text-sm" x-text="beerCount"></span>
+                            <button @click="beerCount++; persist();" class="w-8 h-8 bg-zinc-800 text-white rounded-xl font-bold flex items-center justify-center hover:bg-zinc-700 transition">+</button>
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-brand-border">
-                        <span class="text-xs text-slate-300 font-medium">Gesamtkilometer (🚴‍♂️)</span>
+                    <div class="flex items-center justify-between bg-black/50 p-3.5 rounded-2xl border border-appdark-border">
+                        <span class="text-xs text-zinc-300 font-bold">Gesamtkilometer (🚴‍♂️)</span>
                         <div class="flex items-center gap-2">
-                            <input type="number" x-model.number="totalKm" @change="persist()" class="w-20 bg-black border border-brand-border rounded-lg px-2 py-1 text-xs text-forest-400 font-bold text-center">
-                            <span class="text-xs text-slate-400">km</span>
+                            <input type="number" x-model.number="totalKm" @change="persist()" class="w-24 bg-black border border-appdark-border rounded-xl px-3 py-2 text-xs text-emerald-400 font-bold text-center">
+                            <span class="text-xs text-zinc-400">km</span>
                         </div>
                     </div>
                 </div>
 
-                <button @click="saveSettings()" class="w-full bg-forest-600 hover:bg-forest-500 text-white py-2.5 rounded-xl font-bold text-xs shadow transition">
-                    Änderungen speichern
+                <button @click="saveSettings()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3.5 rounded-2xl font-extrabold text-xs shadow-xl shadow-emerald-900/50 transition active:scale-95">
+                    Änderungen speichern & Cloud aktualisieren
                 </button>
             </div>
         </div>
@@ -458,30 +452,30 @@
     </main>
 
     <!-- Bottom Navigation Bar -->
-    <nav class="bg-brand-card/90 backdrop-blur-md border-t border-brand-border fixed bottom-0 left-0 right-0 z-40 shadow-2xl">
-        <div class="max-w-3xl mx-auto flex justify-around py-2.5 px-1">
-            <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'text-forest-400 font-bold' : 'text-slate-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
-                <i class="fa-solid fa-house text-base mb-0.5"></i>
+    <nav class="bg-appdark-card/95 backdrop-blur-xl border-t border-appdark-border fixed bottom-0 left-0 right-0 z-40 shadow-2xl">
+        <div class="max-w-3xl mx-auto flex justify-around py-3 px-1">
+            <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'text-emerald-400 font-bold scale-105' : 'text-zinc-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
+                <i class="fa-solid fa-house text-base mb-1"></i>
                 <span class="text-[9px]">Home</span>
             </button>
-            <button @click="currentTab = 'gpx'; setTimeout(() => { initMap(); }, 150)" :class="currentTab === 'gpx' ? 'text-forest-400 font-bold' : 'text-slate-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
-                <i class="fa-solid fa-map text-base mb-0.5"></i>
+            <button @click="currentTab = 'gpx'; setTimeout(() => { initMap(); }, 150)" :class="currentTab === 'gpx' ? 'text-emerald-400 font-bold scale-105' : 'text-zinc-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
+                <i class="fa-solid fa-map text-base mb-1"></i>
                 <span class="text-[9px]">Karte</span>
             </button>
-            <button @click="currentTab = 'photos'" :class="currentTab === 'photos' ? 'text-forest-400 font-bold' : 'text-slate-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
-                <i class="fa-solid fa-images text-base mb-0.5"></i>
+            <button @click="currentTab = 'photos'" :class="currentTab === 'photos' ? 'text-emerald-400 font-bold scale-105' : 'text-zinc-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
+                <i class="fa-solid fa-images text-base mb-1"></i>
                 <span class="text-[9px]">Galerie</span>
             </button>
-            <button @click="currentTab = 'packlist'" :class="currentTab === 'packlist' ? 'text-forest-400 font-bold' : 'text-slate-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
-                <i class="fa-solid fa-suitcase text-base mb-0.5"></i>
+            <button @click="currentTab = 'packlist'" :class="currentTab === 'packlist' ? 'text-emerald-400 font-bold scale-105' : 'text-zinc-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
+                <i class="fa-solid fa-suitcase text-base mb-1"></i>
                 <span class="text-[9px]">Packliste</span>
             </button>
-            <button @click="currentTab = 'shopping'" :class="currentTab === 'shopping' ? 'text-forest-400 font-bold' : 'text-slate-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
-                <i class="fa-solid fa-cart-shopping text-base mb-0.5"></i>
+            <button @click="currentTab = 'shopping'" :class="currentTab === 'shopping' ? 'text-emerald-400 font-bold scale-105' : 'text-zinc-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
+                <i class="fa-solid fa-cart-shopping text-base mb-1"></i>
                 <span class="text-[9px]">Einkauf</span>
             </button>
-            <button @click="currentTab = 'costs'" :class="currentTab === 'costs' ? 'text-forest-400 font-bold' : 'text-slate-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
-                <i class="fa-solid fa-euro-sign text-base mb-0.5"></i>
+            <button @click="currentTab = 'costs'" :class="currentTab === 'costs' ? 'text-emerald-400 font-bold scale-105' : 'text-zinc-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
+                <i class="fa-solid fa-euro-sign text-base mb-1"></i>
                 <span class="text-[9px]">Kosten</span>
             </button>
         </div>
@@ -489,58 +483,58 @@
 
     <!-- Modals -->
     <div x-show="openInfoModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
-        <div @click.outside="openInfoModal = false" class="bg-brand-card border border-brand-border rounded-3xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
-            <h3 class="text-sm font-bold text-white">Wichtige Infos bearbeiten</h3>
-            <textarea x-model="importantInfo" rows="4" class="w-full bg-black border border-brand-border rounded-xl p-3 text-xs text-white focus:outline-none focus:border-forest-600"></textarea>
-            <div class="flex space-x-2 pt-2">
-                <button @click="openInfoModal = false" class="flex-1 bg-brand-border text-slate-300 py-2 rounded-xl text-xs font-semibold">Abbrechen</button>
-                <button @click="saveInfo()" class="flex-1 bg-forest-600 text-white py-2 rounded-xl text-xs font-semibold">Speichern</button>
+        <div @click.outside="openInfoModal = false" class="bg-appdark-card border border-appdark-border rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+            <h3 class="text-sm font-extrabold text-white">Wichtige Infos & Notizen bearbeiten</h3>
+            <textarea x-model="importantInfo" rows="4" class="w-full bg-black border border-appdark-border rounded-2xl p-4 text-xs text-white focus:outline-none focus:border-emerald-500"></textarea>
+            <div class="flex space-x-3 pt-2">
+                <button @click="openInfoModal = false" class="flex-1 bg-zinc-800 text-zinc-300 py-3 rounded-2xl text-xs font-bold">Abbrechen</button>
+                <button @click="saveInfo()" class="flex-1 bg-emerald-600 text-white py-3 rounded-2xl text-xs font-bold shadow-lg">Speichern</button>
             </div>
         </div>
     </div>
 
     <div x-show="openAddPackModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
-        <div @click.outside="openAddPackModal = false" class="bg-brand-card border border-brand-border rounded-3xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
-            <h3 class="text-sm font-bold text-white">Gegenstand zur Packliste</h3>
-            <input type="text" x-model="newPack.item" placeholder="z.B. Gaskocher" class="w-full bg-black border border-brand-border rounded-xl px-3 py-2 text-xs text-white">
-            <select x-model="newPack.owner" class="w-full bg-black border border-brand-border rounded-xl px-3 py-2 text-xs text-white">
+        <div @click.outside="openAddPackModal = false" class="bg-appdark-card border border-appdark-border rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+            <h3 class="text-sm font-extrabold text-white">Gegenstand zur Packliste</h3>
+            <input type="text" x-model="newPack.item" placeholder="z.B. Gaskocher" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
+            <select x-model="newPack.owner" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
                 <option value="" disabled selected>Wer bringt es mit?</option>
                 <template x-for="m in members"><option :value="m" x-text="m"></option></template>
             </select>
-            <div class="flex space-x-2 pt-2">
-                <button @click="openAddPackModal = false" class="flex-1 bg-brand-border text-slate-300 py-2 rounded-xl text-xs font-semibold">Abbrechen</button>
-                <button @click="addPackItem()" class="flex-1 bg-forest-600 text-white py-2 rounded-xl text-xs font-semibold">Hinzufügen</button>
+            <div class="flex space-x-3 pt-2">
+                <button @click="openAddPackModal = false" class="flex-1 bg-zinc-800 text-zinc-300 py-3 rounded-2xl text-xs font-bold">Abbrechen</button>
+                <button @click="addPackItem()" class="flex-1 bg-emerald-600 text-white py-3 rounded-2xl text-xs font-bold shadow-lg">Hinzufügen</button>
             </div>
         </div>
     </div>
 
     <div x-show="openAddShoppingModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
-        <div @click.outside="openAddShoppingModal = false" class="bg-brand-card border border-brand-border rounded-3xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
-            <h3 class="text-sm font-bold text-white">Artikel zur Einkaufsliste</h3>
-            <input type="text" x-model="newShopping.name" placeholder="z.B. Brot & Käse" class="w-full bg-black border border-brand-border rounded-xl px-3 py-2 text-xs text-white">
-            <select x-model="newShopping.category" class="w-full bg-black border border-brand-border rounded-xl px-3 py-2 text-xs text-white">
+        <div @click.outside="openAddShoppingModal = false" class="bg-appdark-card border border-appdark-border rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+            <h3 class="text-sm font-extrabold text-white">Artikel zur Einkaufsliste</h3>
+            <input type="text" x-model="newShopping.name" placeholder="z.B. Brot & Käse" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
+            <select x-model="newShopping.category" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
                 <option value="Getränke">Getränke</option>
                 <option value="Essen">Essen</option>
                 <option value="Sonstiges">Sonstiges</option>
             </select>
-            <div class="flex space-x-2 pt-2">
-                <button @click="openAddShoppingModal = false" class="flex-1 bg-brand-border text-slate-300 py-2 rounded-xl text-xs font-semibold">Abbrechen</button>
-                <button @click="addShoppingItem()" class="flex-1 bg-forest-600 text-white py-2 rounded-xl text-xs font-semibold">Hinzufügen</button>
+            <div class="flex space-x-3 pt-2">
+                <button @click="openAddShoppingModal = false" class="flex-1 bg-zinc-800 text-zinc-300 py-3 rounded-2xl text-xs font-bold">Abbrechen</button>
+                <button @click="addShoppingItem()" class="flex-1 bg-emerald-600 text-white py-3 rounded-2xl text-xs font-bold shadow-lg">Hinzufügen</button>
             </div>
         </div>
     </div>
 
     <div x-show="openAddExpenseModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
-        <div @click.outside="openAddExpenseModal = false" class="bg-brand-card border border-brand-border rounded-3xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
-            <h3 class="text-sm font-bold text-white">Ausgabe erfassen</h3>
-            <input type="text" x-model="newExpense.title" placeholder="Wofür?" class="w-full bg-black border border-brand-border rounded-xl px-3 py-2 text-xs text-white">
-            <input type="number" step="0.01" x-model.number="newExpense.amount" placeholder="Betrag in €" class="w-full bg-black border border-brand-border rounded-xl px-3 py-2 text-xs text-white">
-            <select x-model="newExpense.payer" class="w-full bg-black border border-brand-border rounded-xl px-3 py-2 text-xs text-white">
+        <div @click.outside="openAddExpenseModal = false" class="bg-appdark-card border border-appdark-border rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+            <h3 class="text-sm font-extrabold text-white">Ausgabe erfassen</h3>
+            <input type="text" x-model="newExpense.title" placeholder="Wofür?" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
+            <input type="number" step="0.01" x-model.number="newExpense.amount" placeholder="Betrag in €" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
+            <select x-model="newExpense.payer" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
                 <template x-for="m in members"><option :value="m" x-text="m"></option></template>
             </select>
-            <div class="flex space-x-2 pt-2">
-                <button @click="openAddExpenseModal = false" class="flex-1 bg-brand-border text-slate-300 py-2 rounded-xl text-xs font-semibold">Abbrechen</button>
-                <button @click="addExpense()" class="flex-1 bg-forest-600 text-white py-2 rounded-xl text-xs font-semibold">Speichern</button>
+            <div class="flex space-x-3 pt-2">
+                <button @click="openAddExpenseModal = false" class="flex-1 bg-zinc-800 text-zinc-300 py-3 rounded-2xl text-xs font-bold">Abbrechen</button>
+                <button @click="addExpense()" class="flex-1 bg-emerald-600 text-white py-3 rounded-2xl text-xs font-bold shadow-lg">Speichern</button>
             </div>
         </div>
     </div>
@@ -582,32 +576,29 @@
 
                 initApp() {
                     if (window.cloudState) {
-                        this.tripName = window.cloudState.tripName || this.tripName;
-                        this.members = window.cloudState.members || this.members;
-                        this.membersInput = this.members.join(', ');
-                        this.beerCount = window.cloudState.beerCount ?? 18;
-                        this.totalKm = window.cloudState.totalKm ?? 145;
-                        this.importantInfo = window.cloudState.importantInfo || '';
-                        this.packList = window.cloudState.packList || [];
-                        this.shoppingItems = window.cloudState.shoppingItems || [];
-                        this.expenses = window.cloudState.expenses || [];
-                        this.photos = window.cloudState.photos || [];
-                        this.gpxRoutes = window.cloudState.gpxRoutes || [];
+                        this.applyCloudState(window.cloudState);
                     }
                     window.syncAlpineData = () => {
                         if (window.cloudState) {
-                            this.tripName = window.cloudState.tripName || this.tripName;
-                            this.members = window.cloudState.members || this.members;
-                            this.beerCount = window.cloudState.beerCount ?? this.beerCount;
-                            this.totalKm = window.cloudState.totalKm ?? this.totalKm;
-                            this.importantInfo = window.cloudState.importantInfo || this.importantInfo;
-                            this.packList = window.cloudState.packList || this.packList;
-                            this.shoppingItems = window.cloudState.shoppingItems || this.shoppingItems;
-                            this.expenses = window.cloudState.expenses || this.expenses;
-                            this.photos = window.cloudState.photos || this.photos;
-                            this.gpxRoutes = window.cloudState.gpxRoutes || this.gpxRoutes;
+                            this.applyCloudState(window.cloudState);
                         }
                     };
+                },
+
+                applyCloudState(state) {
+                    this.tripName = state.tripName || this.tripName;
+                    if (state.members && Array.isArray(state.members)) {
+                        this.members = state.members;
+                        this.membersInput = this.members.join(', ');
+                    }
+                    this.beerCount = state.beerCount ?? this.beerCount;
+                    this.totalKm = state.totalKm ?? this.totalKm;
+                    this.importantInfo = state.importantInfo || this.importantInfo;
+                    this.packList = state.packList || this.packList;
+                    this.shoppingItems = state.shoppingItems || this.shoppingItems;
+                    this.expenses = state.expenses || this.expenses;
+                    this.photos = state.photos || this.photos;
+                    this.gpxRoutes = state.gpxRoutes || this.gpxRoutes;
                 },
 
                 persist() {
@@ -627,13 +618,13 @@
                 saveSettings() {
                     this.members = this.membersInput.split(',').map(m => m.trim()).filter(m => m.length > 0);
                     this.persist();
-                    this.showToast('Einstellungen gespeichert!');
+                    this.showToast('Einstellungen & Crew gespeichert!');
                 },
 
                 saveInfo() {
                     this.openInfoModal = false;
                     this.persist();
-                    this.showToast('Infos aktualisiert!');
+                    this.showToast('Notizen aktualisiert!');
                 },
 
                 incrementBeer() {
@@ -709,7 +700,7 @@
                         if(routeLayerGroup) mapInstance.removeLayer(routeLayerGroup);
                         routeLayerGroup = L.layerGroup().addTo(mapInstance);
 
-                        const polyline = L.polyline(route.coords, { color: '#22c55e', weight: 4 }).addTo(routeLayerGroup);
+                        const polyline = L.polyline(route.coords, { color: '#10b981', weight: 4 }).addTo(routeLayerGroup);
                         mapInstance.fitBounds(polyline.getBounds(), { padding: [30, 30] });
                     }
                 },
@@ -830,7 +821,7 @@
                 const eleNode = pt.querySelector("ele");
                 const ele = eleNode ? parseFloat(eleNode.textContent) : null;
 
-                coords.push([lat, lon]);
+                coords.path ? coords.push([lat, lon]) : coords.push([lat, lon]);
 
                 if (prevPt) {
                     const R = 6371e3;
