@@ -412,7 +412,7 @@
             </div>
         </div>
 
-        <!-- ================= 7. EINSTELLUNGEN ================= -->
+        <!-- ================= 7. EINSTELLUNGEN (MIT KORREKTUR-OPTIONEN) ================= -->
         <div x-show="currentTab === 'settings'" class="space-y-4" x-transition.opacity>
             <div class="bg-brand-card border border-brand-border rounded-2xl p-5 shadow-lg space-y-4">
                 <h2 class="text-base font-bold text-white flex items-center gap-2">
@@ -426,6 +426,29 @@
                     <label class="text-xs text-slate-400 font-medium block mb-1">Teilnehmer (mit Komma getrennt)</label>
                     <input type="text" x-model="membersInput" class="w-full bg-black border border-brand-border rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-forest-600">
                 </div>
+
+                <!-- Fehlerkorrektur / Plus-Minus für Dosenbier & Kilometer -->
+                <div class="pt-3 border-t border-brand-border space-y-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Werte korrigieren (Fehlerbehebung)</h3>
+                    
+                    <div class="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-brand-border">
+                        <span class="text-xs text-slate-300 font-medium">Dosenbier-Stand (🍺)</span>
+                        <div class="flex items-center gap-2">
+                            <button @click="if(beerCount > 0) beerCount--; persist();" class="w-7 h-7 bg-brand-border text-white rounded-lg font-bold flex items-center justify-center hover:bg-slate-700">-</button>
+                            <span class="text-xs font-bold text-amber-400 w-6 text-center" x-text="beerCount"></span>
+                            <button @click="beerCount++; persist();" class="w-7 h-7 bg-brand-border text-white rounded-lg font-bold flex items-center justify-center hover:bg-slate-700">+</button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-brand-border">
+                        <span class="text-xs text-slate-300 font-medium">Gesamtkilometer (🚴‍♂️)</span>
+                        <div class="flex items-center gap-2">
+                            <input type="number" x-model.number="totalKm" @change="persist()" class="w-20 bg-black border border-brand-border rounded-lg px-2 py-1 text-xs text-forest-400 font-bold text-center">
+                            <span class="text-xs text-slate-400">km</span>
+                        </div>
+                    </div>
+                </div>
+
                 <button @click="saveSettings()" class="w-full bg-forest-600 hover:bg-forest-500 text-white py-2.5 rounded-xl font-bold text-xs shadow transition">
                     Änderungen speichern
                 </button>
