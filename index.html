@@ -1,968 +1,1305 @@
 <!DOCTYPE html>
-<html lang="de" class="h-full">
+<html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Outdoor & Gruppenurlaub</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        nature: {
-                            50: '#f4fbf7',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
-                            900: '#064e3b',
-                        },
-                        appdark: {
-                            bg: '#070b09',
-                            card: '#111914',
-                            border: '#1c2b22',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Font Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Leaflet CSS für GPX-Karten -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <!-- Firebase SDKs & deine Config -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EEEBE3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111312" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Tourbuch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCADq9e0SKGhSYTjEADOdJbcVYZVkDFLO0",
-            authDomain: "outdoortripapp-650d1.firebaseapp.com",
-            projectId: "outdoortripapp-650d1",
-            storageBucket: "outdoortripapp-650d1.firebasestorage.app",
-            messagingSenderId: "586028344149",
-            appId: "1:586028344149:web:c8f1bc05139aa628c9c5dc"
-        };
+<style>
+:root{
+  --paper:#EEEBE3; --paper-2:#E5E1D6; --card:#F8F6F1;
+  --ink:#16181A; --ink-2:#4B4E50; --ink-3:#8B8D8C; --line:#D5D0C4;
+  --signal:#FF4F1A; --signal-soft:rgba(255,79,26,.12);
+  --pos:#2F7A4F; --neg:#C8402A;
+  --hero-bg:#16181A; --hero-fg:#F2EFE6;
+  --nav-bg:#16181A; --nav-fg:#F2EFE6;
+  --r-lg:24px; --r-md:16px; --r-sm:12px;
+  --shadow:0 1px 0 rgba(0,0,0,.04), 0 12px 32px -18px rgba(22,24,26,.35);
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#111312; --paper-2:#181B19; --card:#1B1E1C;
+    --ink:#ECE9E1; --ink-2:#B4B1A9; --ink-3:#7A7D79; --line:#2B2F2C;
+    --signal:#FF6534; --signal-soft:rgba(255,101,52,.14);
+    --pos:#5DBB86; --neg:#FF7A5C;
+    --hero-bg:#1E2320; --hero-fg:#ECE9E1;
+    --nav-bg:#232825; --nav-fg:#ECE9E1;
+    --shadow:0 12px 32px -18px rgba(0,0,0,.8);
+  }
+}
+*{box-sizing:border-box;margin:0}
+[x-cloak]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Bricolage Grotesque',system-ui,sans-serif; font-optical-sizing:auto;
+  background:var(--paper); color:var(--ink); min-height:100dvh;
+  -webkit-tap-highlight-color:transparent; -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input,select,textarea{font:inherit;color:inherit}
+img{display:block;max-width:100%}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+.ic svg{width:20px;height:20px;display:block}
+.ic.s svg{width:16px;height:16px}
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+/* ---------- Header ---------- */
+.top{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 18px 12px;
+  background:color-mix(in srgb,var(--paper) 86%,transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+.brand{display:flex;align-items:center;gap:12px}
+.blaze{width:12px;height:20px;border:1.5px solid var(--ink);border-radius:2px;flex:none;
+  background:linear-gradient(var(--card) 0 33%,var(--signal) 33% 67%,var(--card) 67%)}
+.blaze.sm{width:9px;height:14px;border-width:1.2px}
+.brand h2{font-size:22px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.top-r{display:flex;align-items:center;gap:8px}
+.sync{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);
+  padding:6px 10px;border:1px solid var(--line);border-radius:999px}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--ink-3)}
+.sync.live i{background:#2FBF71;box-shadow:0 0 0 0 rgba(47,191,113,.6);animation:pulse 2s infinite}
+.sync.offline i,.sync.error i{background:var(--signal)}
+.sync.pending i{background:#E3B341}
+@keyframes pulse{70%{box-shadow:0 0 0 7px rgba(47,191,113,0)}100%{box-shadow:0 0 0 0 rgba(47,191,113,0)}}
+.icon-btn{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;border:1px solid var(--line);background:var(--card);transition:transform .15s}
+.icon-btn:active{transform:scale(.92)}
+.icon-btn.ghost{border-color:transparent;background:transparent}
 
-        let isRemoteUpdate = false;
+/* ---------- Layout ---------- */
+main{max-width:600px;margin:0 auto;padding:4px 16px calc(120px + var(--safe-b))}
+.view{display:flex;flex-direction:column;gap:14px;animation:rise .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.sec-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px}
+.sec{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;letter-spacing:.02em}
+.count{font-size:11px;color:var(--ink-3);font-weight:500}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px}
+.muted{color:var(--ink-3)}
+.row-gap{display:flex;gap:8px;align-items:center}
 
-        window.cloudState = {
-            tripName: "Alpen-Gravel & Wandertour",
-            members: ['Fabian', 'Luis', 'Tobias', 'Max', 'Tim'],
-            beerCount: 18,
-            totalKm: 145,
-            importantInfo: 'Treffpunkt morgens um 07:30 Uhr am Startpunkt. Helm- und Regenjackenpflicht!',
-            shoppingItems: [],
-            packList: [],
-            expenses: [],
-            photos: [],
-            gpxRoutes: []
-        };
+/* ---------- Buttons / Inputs ---------- */
+.btn{height:44px;padding:0 16px;border-radius:14px;font-weight:650;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s,background .2s;white-space:nowrap}
+.btn:active{transform:scale(.96)}
+.btn.sm{height:36px;padding:0 13px;font-size:13px;border-radius:12px}
+.btn-primary{background:var(--signal);color:#fff}
+.btn-ink{background:var(--ink);color:var(--paper)}
+.btn-ghost{border:1px solid var(--line);background:var(--card)}
+.btn.block{width:100%;height:52px;font-size:15px}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.field{display:flex;flex-direction:column;gap:7px}
+.field>label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.inp{width:100%;height:50px;padding:0 15px;border-radius:14px;border:1.5px solid var(--line);background:var(--paper);font-size:16px;outline:none;transition:border-color .15s}
+.inp:focus{border-color:var(--ink)}
+textarea.inp{height:auto;padding:13px 15px;resize:vertical;line-height:1.5}
+select.inp{appearance:none;-webkit-appearance:none;padding-right:34px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink-2) 50%),linear-gradient(135deg,var(--ink-2) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 22px,calc(100% - 13px) 22px;background-size:5px 5px;background-repeat:no-repeat}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{height:36px;padding:0 14px;border-radius:999px;border:1.5px solid var(--line);font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;background:var(--card);transition:all .15s}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.chip.sm{height:30px;font-size:12px;padding:0 11px}
 
-        window.saveToCloud = async function() {
-            if (isRemoteUpdate) return;
-            try {
-                await setDoc(doc(db, "grouptrip_outdoor", "daten"), window.cloudState);
-            } catch (e) {
-                console.error("Fehler beim Speichern: ", e);
-            }
-        };
+/* ---------- Hero ---------- */
+.hero{position:relative;overflow:hidden;background:var(--hero-bg);color:var(--hero-fg);border-radius:28px;padding:22px 22px 20px;min-height:220px;display:flex;flex-direction:column;justify-content:flex-end}
+.contours{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.contours path{fill:none;stroke:var(--signal);stroke-width:.8;opacity:.38}
+.contours path.idx{stroke-width:1.6;opacity:.6}
+.hero-in{position:relative}
+.hero .eyebrow{color:color-mix(in srgb,var(--hero-fg) 60%,transparent)}
+.trip{font-size:clamp(32px,10vw,46px);font-weight:800;letter-spacing:-.04em;line-height:.92;margin:10px 0 16px;font-variation-settings:'opsz' 96;text-wrap:balance}
+.crew{display:flex;align-items:center}
+.av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;border:2px solid var(--hero-bg);margin-right:-7px;font-family:'IBM Plex Mono',monospace}
+.av.me{outline:2px solid var(--signal);outline-offset:1px;z-index:1}
+.crew-me{margin-left:16px;font-size:12px;color:color-mix(in srgb,var(--hero-fg) 70%,transparent)}
+.crew-me b{color:var(--hero-fg)}
 
-        onSnapshot(doc(db, "grouptrip_outdoor", "daten"), (docSnap) => {
-            if (docSnap.exists()) {
-                isRemoteUpdate = true;
-                const remoteData = docSnap.data();
-                window.cloudState = { ...window.cloudState, ...remoteData };
-                if (window.syncAlpineData) window.syncAlpineData();
-                isRemoteUpdate = false;
-            }
-        });
-    </script>
+/* ---------- Tiles ---------- */
+.tile{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;text-align:left;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:6px;transition:transform .15s}
+button.tile:active{transform:scale(.97)}
+.tile-h{display:flex;justify-content:space-between;align-items:center}
+.lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.big{font-size:44px;font-weight:800;letter-spacing:-.045em;line-height:1;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:6px}
+.big small{font-size:14px;font-weight:500;letter-spacing:0;color:var(--ink-2)}
+.big.md{font-size:28px;letter-spacing:-.03em}
+.tile-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ruler{height:16px;margin-top:6px;border-top:1px solid var(--ink);
+  background:repeating-linear-gradient(90deg,var(--ink) 0 1px,transparent 1px 10%),repeating-linear-gradient(90deg,var(--ink-3) 0 1px,transparent 1px 2%);
+  background-size:100% 100%,100% 45%;background-repeat:no-repeat;opacity:.7}
+.mini{font-size:12px;font-weight:700;padding:7px 11px;border-radius:10px;background:var(--ink);color:var(--paper)}
+.plus{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;background:var(--signal);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+.tile-beer.bump .big{animation:bump .4s cubic-bezier(.3,1.6,.5,1)}
+@keyframes bump{40%{transform:scale(1.18) rotate(-3deg)}}
+.sub{font-size:11px;color:var(--ink-2)}
+.pos{color:var(--pos)} .neg{color:var(--neg)}
 
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+.note p{font-size:15px;line-height:1.55;white-space:pre-line;color:var(--ink-2);margin-top:10px}
+.note .sec-row{margin:0}
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.strip img{aspect-ratio:1;object-fit:cover;border-radius:12px;width:100%}
 
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #070b09; color: #f3f4f6; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
+/* ---------- Map ---------- */
+.mapbox{position:relative;height:min(52vh,460px);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line);background:var(--paper-2)}
+#map{position:absolute;inset:0;z-index:1}
+.leaflet-tile-pane{filter:saturate(.75) contrast(1.03)}
+.leaflet-control-zoom a{border-radius:10px!important;color:var(--ink)!important}
+.leaflet-bar{border:0!important;box-shadow:var(--shadow)!important;border-radius:12px!important;overflow:hidden}
+.map-ctl{position:absolute;top:12px;left:12px;z-index:5;display:flex;gap:6px}
+.map-ctl .chip{box-shadow:var(--shadow)}
+.map-empty{position:absolute;inset:auto 12px 12px 12px;z-index:5;background:var(--card);border-radius:14px;padding:12px 14px;font-size:13px;color:var(--ink-2);box-shadow:var(--shadow)}
+.rstats{display:grid;grid-template-columns:repeat(3,1fr);margin:14px 0 4px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.rstats div{padding:11px 0;display:flex;flex-direction:column;gap:3px}
+.rstats div+div{padding-left:14px;border-left:1px solid var(--line)}
+.rstats b{font-size:22px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.profile{width:100%;height:110px;display:block;margin-top:12px}
+.profile .ar{fill:var(--signal-soft)} .profile .ln{fill:none;stroke:var(--signal);stroke-width:2;vector-effect:non-scaling-stroke}
+.prof-l{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:4px}
+.r-name{font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.list{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.item{display:flex;align-items:center;gap:13px;padding:13px 14px;min-height:62px;width:100%;text-align:left}
+.item+.item{border-top:1px solid var(--line)}
+.item.sel{background:var(--signal-soft)}
+.swatch{width:38px;height:38px;border-radius:12px;flex:none;display:grid;place-items:center;background:var(--paper-2);color:var(--ink-2)}
+.item.sel .swatch{background:var(--signal);color:#fff}
+.grow{flex:1;min-width:0}
+.t1{font-weight:650;font-size:15px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.t2{font-size:12px;color:var(--ink-3);margin-top:3px}
+.del{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;color:var(--ink-3);flex:none;transition:all .15s}
+.del.armed{width:auto;padding:0 10px;background:var(--neg);color:#fff;font-size:12px;font-weight:700}
+.empty{padding:30px 20px;text-align:center;color:var(--ink-3);font-size:14px;line-height:1.5}
+
+/* ---------- Photos ---------- */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:var(--r-lg);overflow:hidden}
+.ph{position:relative;aspect-ratio:1;overflow:hidden;background:var(--paper-2)}
+button.ph:first-of-type{grid-column:span 2;grid-row:span 2}
+.ph img{width:100%;height:100%;object-fit:cover;transition:transform .3s,opacity .2s}
+.ph-by{position:absolute;left:6px;bottom:6px;font-size:10px;font-weight:600;color:#fff;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:6px;backdrop-filter:blur(6px)}
+.ph-check{position:absolute;top:7px;right:7px;width:24px;height:24px;border-radius:50%;border:2px solid #fff;display:none;place-items:center;color:#fff;background:rgba(0,0,0,.2)}
+.ph-check svg{width:14px;height:14px}
+.selecting .ph-check{display:grid}
+.ph.sel .ph-check{background:var(--signal);border-color:var(--signal)}
+.ph.sel img{transform:scale(.88);border-radius:10px}
+.actionbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + var(--safe-b));z-index:35;width:calc(100% - 32px);max-width:568px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 10px 10px 18px;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);font-weight:650}
+
+/* Lightbox */
+.lb{position:fixed;inset:0;z-index:60;background:#0A0B0B;display:flex;flex-direction:column;color:#fff}
+.lb-top,.lb-bot{display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 12px}
+.lb-bot{padding:12px 14px calc(14px + var(--safe-b));gap:10px;justify-content:center}
+.lb-img{flex:1;display:grid;place-items:center;overflow:hidden;position:relative}
+.lb-img img{max-width:100%;max-height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
+.lb .icon-btn{background:rgba(255,255,255,.08);border-color:transparent;color:#fff}
+.lb-nav{position:absolute;top:0;bottom:0;width:30%;z-index:2}
+.lb-nav.l{left:0}.lb-nav.r{right:0}
+.lb-btn{height:46px;padding:0 18px;border-radius:14px;background:rgba(255,255,255,.1);display:flex;align-items:center;gap:8px;font-weight:650;font-size:14px}
+.lb-btn.armed{background:var(--neg)}
+
+/* ---------- Lists ---------- */
+.seg{display:grid;grid-template-columns:1fr 1fr;padding:4px;background:var(--paper-2);border-radius:16px;gap:4px}
+.seg button{height:42px;border-radius:12px;font-weight:650;font-size:14px;color:var(--ink-2);display:flex;align-items:center;justify-content:center;gap:7px}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.seg .badge{font-size:11px;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--signal);color:#fff;display:inline-grid;place-items:center}
+.adder{display:flex;gap:8px}
+.adder .inp{flex:1;min-width:0}
+.adder select.inp{flex:0 0 112px;font-size:14px}
+.adder .btn{width:50px;height:50px;padding:0;flex:none}
+.cbx{width:26px;height:26px;border-radius:50%;border:2px solid var(--ink-3);flex:none;display:grid;place-items:center;color:var(--paper);transition:all .15s}
+.cbx svg{width:15px;height:15px;opacity:0}
+.done .cbx{background:var(--ink);border-color:var(--ink)}
+.done .cbx svg{opacity:1}
+.done .t1{text-decoration:line-through;color:var(--ink-3)}
+.tag{font-size:11px;padding:3px 8px;border-radius:7px;background:var(--paper-2);color:var(--ink-2);flex:none}
+.tag.me{background:var(--signal-soft);color:var(--signal)}
+
+/* ---------- Cash ---------- */
+.receipt{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px 20px 16px;position:relative}
+.receipt .big{font-size:52px}
+.perf{height:0;border-top:2px dashed var(--line);margin:16px -20px;position:relative}
+.perf::before,.perf::after{content:'';position:absolute;top:-11px;width:20px;height:20px;border-radius:50%;background:var(--paper);border:1px solid var(--line)}
+.perf::before{left:-11px;clip-path:inset(0 0 0 50%)} .perf::after{right:-11px;clip-path:inset(0 50% 0 0)}
+.kv{display:flex;align-items:baseline;gap:8px;font-size:14px;padding:5px 0}
+.kv .dots{flex:1;border-bottom:1.5px dotted var(--ink-3);opacity:.5;transform:translateY(-4px)}
+.kv b{font-variant-numeric:tabular-nums}
+.kv.me{color:var(--signal);font-weight:700}
+.arrow{color:var(--ink-3);margin:0 2px}
+.amt{font-weight:750;font-variant-numeric:tabular-nums;font-size:16px;flex:none}
+
+/* ---------- Bottom nav ---------- */
+.nav{position:fixed;z-index:40;left:50%;transform:translateX(-50%);bottom:calc(14px + var(--safe-b));display:flex;gap:2px;padding:6px;background:var(--nav-bg);color:var(--nav-fg);border-radius:24px;box-shadow:0 18px 40px -14px rgba(0,0,0,.55);width:calc(100% - 28px);max-width:420px}
+.nav button{flex:1;height:54px;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:10px;font-weight:600;letter-spacing:.02em;opacity:.55;transition:all .2s;position:relative}
+.nav button.on{opacity:1;background:rgba(255,255,255,.07)}
+.nav button.on .ic{color:var(--signal)}
+.nav button.on::after{content:'';position:absolute;top:5px;width:4px;height:4px;border-radius:50%;background:var(--signal)}
+
+/* ---------- Sheets ---------- */
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(10,11,11,.45);backdrop-filter:blur(3px)}
+.sheet{position:fixed;z-index:51;left:0;right:0;bottom:0;margin:0 auto;max-width:600px;max-height:90dvh;overflow:auto;background:var(--card);border-radius:28px 28px 0 0;padding:10px 20px calc(22px + var(--safe-b));display:flex;flex-direction:column;gap:16px}
+.sh-anim{transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+.sh-off{transform:translateY(100%)}
+.grab{width:42px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 4px}
+.sheet h3{font-size:24px;font-weight:800;letter-spacing:-.03em}
+.sheet .hint{font-size:13px;color:var(--ink-3);line-height:1.5;margin-top:-8px}
+.me-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.me-grid button{height:58px;border-radius:16px;border:1.5px solid var(--line);display:flex;align-items:center;gap:10px;padding:0 12px;font-weight:650}
+.me-grid button.on{border-color:var(--signal);background:var(--signal-soft)}
+.me-grid .av{border-color:var(--card);margin:0}
+
+/* toast & progress */
+.toast{position:fixed;z-index:70;left:50%;top:calc(env(safe-area-inset-top,0px) + 14px);transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:11px 16px;border-radius:14px;font-size:13px;font-weight:600;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
+.progress{position:fixed;z-index:45;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 70px);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px 8px 10px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;box-shadow:var(--shadow)}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--signal);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0}
+.set-row+.set-row{border-top:1px solid var(--line)}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper b{min-width:40px;text-align:center;font-size:17px;font-variant-numeric:tabular-nums}
+.member-chip{height:38px;padding:0 6px 0 6px;border-radius:999px;border:1.5px solid var(--line);display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px}
+.member-chip .av{width:26px;height:26px;font-size:10px;margin:0;border:0}
+.member-chip button{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--ink-3)}
+.member-chip button.armed{background:var(--neg);color:#fff}
+@media (min-width:700px){ main{padding-top:12px} .hero{min-height:260px} }
+</style>
 </head>
-<body class="h-full flex flex-col antialiased select-none" x-data="appData()" x-init="initApp()">
 
-    <!-- Toast Benachrichtigung -->
-    <div x-show="toast.show" 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:leave="transition ease-in duration-200"
-         class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl text-xs font-bold flex items-center space-x-2 border border-emerald-400/30 backdrop-blur-md"
-         style="display: none;">
-        <i class="fa-solid fa-circle-check text-emerald-200 text-sm"></i>
-        <span x-text="toast.message"></span>
+<body x-data="app" x-cloak>
+
+<!-- ============ HEADER ============ -->
+<header class="top">
+  <div class="brand">
+    <span class="blaze"></span>
+    <h2 x-text="titles[tab]"></h2>
+  </div>
+  <div class="top-r">
+    <span class="sync mono" :class="sync"><i></i><span x-text="syncLabel"></span></span>
+    <button class="icon-btn" @click="go('settings')" aria-label="Einstellungen"><span class="ic" x-html="ic('sliders')"></span></button>
+  </div>
+</header>
+
+<div class="progress" x-show="busy" x-transition.opacity>
+  <span class="spin"></span>
+  <span x-text="busy && busy.label"></span>
+  <span class="mono muted" x-show="busy && busy.total > 1" x-text="busy && (busy.done + '/' + busy.total)"></span>
+</div>
+
+<main>
+
+<!-- ============ HOME ============ -->
+<section class="view" x-show="tab==='home'">
+  <div class="hero">
+    <svg class="contours" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" x-html="contours"></svg>
+    <div class="hero-in">
+      <div class="eyebrow mono">Gruppentour · <span x-text="meta.members.length"></span> Leute</div>
+      <h1 class="trip" x-text="meta.tripName"></h1>
+      <div class="crew">
+        <template x-for="m in meta.members" :key="m">
+          <span class="av" :class="m===me && 'me'" :style="avStyle(m)" x-text="initials(m)" :title="m"></span>
+        </template>
+        <span class="crew-me" x-show="me">du bist <b x-text="me"></b></span>
+      </div>
     </div>
+  </div>
 
-    <!-- Header -->
-    <header class="bg-appdark-card/90 backdrop-blur-xl border-b border-appdark-border px-4 py-3.5 sticky top-0 z-40 flex items-center justify-between shadow-lg">
-        <div class="flex items-center space-x-3">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-900/30">
-                <i class="fa-solid fa-compass text-lg"></i>
-            </div>
-            <div>
-                <h1 class="font-extrabold text-sm tracking-wide text-white flex items-center gap-2">
-                    <span x-text="tripName"></span>
-                    <span class="text-[9px] bg-emerald-950 text-emerald-400 font-bold px-2 py-0.5 rounded-full border border-emerald-800/60 uppercase">Live Sync</span>
-                </h1>
-                <p class="text-[11px] text-emerald-500/80 font-medium"><span x-text="members.length"></span> Crew-Mitglieder aktiv</p>
-            </div>
+  <div class="tile">
+    <div class="tile-h">
+      <span class="lbl mono">Strecke gesamt</span>
+      <button class="mini" @click="openSheet('km')">+ km</button>
+    </div>
+    <div class="big"><span x-text="fmtNum(meta.totalKm)"></span><small class="mono">km</small></div>
+    <div class="ruler"></div>
+  </div>
+
+  <div class="tile-row">
+    <button class="tile tile-beer" :class="bump && 'bump'" @click="addBeer()">
+      <span class="lbl mono">Dosen</span>
+      <div class="big" x-text="meta.beerCount"></div>
+      <span class="sub mono">Tippen = +1</span>
+      <span class="plus">+1</span>
+    </button>
+    <button class="tile" @click="go('cash')">
+      <span class="lbl mono">Ausgaben</span>
+      <div class="big md" x-text="eur(total)"></div>
+      <span class="sub mono" x-show="me">Saldo <span :class="myBalance>=0 ? 'pos' : 'neg'" x-text="eurSigned(myBalance)"></span></span>
+    </button>
+  </div>
+
+  <div class="card note">
+    <div class="sec-row">
+      <div class="sec"><span class="blaze sm"></span>Briefing</div>
+      <button class="icon-btn ghost" @click="openSheet('note')" aria-label="Bearbeiten"><span class="ic s" x-html="ic('edit')"></span></button>
+    </div>
+    <p x-text="meta.importantInfo || 'Noch nichts notiert. Treffpunkt, Zeiten, Pflichtausrüstung – alles hier rein.'"></p>
+  </div>
+
+  <template x-if="photos.length">
+    <div class="card">
+      <div class="sec-row" style="margin:0 0 12px">
+        <div class="sec"><span class="blaze sm"></span>Zuletzt</div>
+        <button class="mini" @click="go('photos')">Galerie</button>
+      </div>
+      <div class="strip">
+        <template x-for="(p,i) in photos.slice(0,4)" :key="p.id">
+          <button @click="go('photos'); openLb(i)"><img :src="p.thumb" alt=""></button>
+        </template>
+      </div>
+    </div>
+  </template>
+</section>
+
+<!-- ============ MAP ============ -->
+<section class="view" x-show="tab==='map'">
+  <div class="mapbox">
+    <div id="map"></div>
+    <div class="map-ctl">
+      <button class="chip sm" :class="mapLayer==='topo' && 'on'" @click="setLayer('topo')">Topo</button>
+      <button class="chip sm" :class="mapLayer==='clean' && 'on'" @click="setLayer('clean')">Straße</button>
+    </div>
+    <div class="map-empty" x-show="!routes.length">Noch keine Tracks. Lade unten eine GPX-Datei hoch.</div>
+  </div>
+
+  <template x-if="selRoute">
+    <div class="card">
+      <div class="eyebrow mono muted">Track · von <span x-text="selRoute.uploader"></span></div>
+      <div class="r-name" style="margin-top:6px" x-text="selRoute.name"></div>
+      <div class="rstats">
+        <div><span class="lbl mono">Distanz</span><b x-text="fmtNum(selRoute.distance) + ' km'"></b></div>
+        <div><span class="lbl mono">Anstieg</span><b x-text="fmtNum(selRoute.gain) + ' m'"></b></div>
+        <div><span class="lbl mono">Abstieg</span><b x-text="fmtNum(selRoute.loss) + ' m'"></b></div>
+      </div>
+      <template x-if="profile">
+        <div>
+          <svg class="profile" viewBox="0 0 600 150" preserveAspectRatio="none">
+            <path class="ar" :d="profile.area"></path>
+            <path class="ln" :d="profile.line"></path>
+          </svg>
+          <div class="prof-l mono"><span x-text="'min ' + profile.min + ' m'"></span><span x-text="'max ' + profile.max + ' m'"></span></div>
         </div>
-        <button @click="currentTab = 'settings'" class="w-10 h-10 rounded-2xl bg-appdark-border/60 border border-emerald-500/20 flex items-center justify-center text-emerald-400 hover:bg-emerald-500/10 transition shadow-inner">
-            <i class="fa-solid fa-sliders text-xs"></i>
+      </template>
+      <div class="row-gap" style="margin-top:14px">
+        <button class="btn btn-ink sm" @click="downloadGpx(selRoute)"><span class="ic s" x-html="ic('download')"></span>GPX laden</button>
+        <button class="btn btn-ghost sm" :class="armed==='r'+selRoute.id && 'armed'" :style="armed==='r'+selRoute.id ? 'background:var(--neg);color:#fff;border-color:var(--neg)' : ''"
+                @click="arm('r'+selRoute.id, () => delRoute(selRoute))" x-text="armed==='r'+selRoute.id ? 'Wirklich löschen?' : 'Löschen'"></button>
+      </div>
+    </div>
+  </template>
+
+  <div class="sec-row">
+    <div class="sec"><span class="blaze sm"></span>Tracks <span class="count mono" x-text="routes.length"></span></div>
+    <button class="btn btn-primary sm" @click="$refs.gpxIn.click()"><span class="ic s" x-html="ic('upload')"></span>GPX</button>
+  </div>
+  <div class="list" x-show="routes.length">
+    <template x-for="r in routes" :key="r.id">
+      <button class="item" :class="r.id===selRouteId && 'sel'" @click="selectRoute(r.id)">
+        <span class="swatch"><span class="ic s" x-html="ic('route')"></span></span>
+        <span class="grow">
+          <span class="t1" style="display:block" x-text="r.name"></span>
+          <span class="t2 mono" style="display:block" x-text="fmtNum(r.distance) + ' km · ↑' + fmtNum(r.gain) + ' m · ' + r.uploader"></span>
+        </span>
+      </button>
+    </template>
+  </div>
+</section>
+
+<!-- ============ PHOTOS ============ -->
+<section class="view" x-show="tab==='photos'">
+  <div class="sec-row" style="margin-top:0">
+    <div class="sec"><span class="blaze sm"></span><span x-text="photos.length + (photos.length===1 ? ' Foto' : ' Fotos')"></span></div>
+    <div class="row-gap">
+      <button class="btn btn-ghost sm" x-show="photos.length" @click="toggleSelect()" x-text="selecting ? 'Fertig' : 'Auswählen'"></button>
+      <button class="btn btn-primary sm" @click="$refs.photoIn.click()"><span class="ic s" x-html="ic('plus')"></span>Fotos</button>
+    </div>
+  </div>
+  <div class="card empty" x-show="!photos.length">Noch keine Fotos.<br>Du kannst mehrere auf einmal auswählen.</div>
+  <div class="grid" :class="selecting && 'selecting'" x-show="photos.length">
+    <template x-for="(p,i) in photos" :key="p.id">
+      <button class="ph" :class="sel.includes(p.id) && 'sel'" @click="tapPhoto(p,i)">
+        <img :src="p.thumb" loading="lazy" alt="">
+        <span class="ph-by mono" x-text="initials(p.uploader)"></span>
+        <span class="ph-check" x-html="ic('check')"></span>
+      </button>
+    </template>
+  </div>
+</section>
+
+<!-- ============ LISTS ============ -->
+<section class="view" x-show="tab==='lists'">
+  <div class="seg">
+    <button :class="listTab==='pack' && 'on'" @click="listTab='pack'">Packliste <span class="badge mono" x-show="packOpen" x-text="packOpen"></span></button>
+    <button :class="listTab==='shop' && 'on'" @click="listTab='shop'">Einkauf <span class="badge mono" x-show="shopOpen" x-text="shopOpen"></span></button>
+  </div>
+
+  <!-- Pack -->
+  <template x-if="listTab==='pack'">
+    <div class="view" style="animation:none">
+      <form class="adder" @submit.prevent="addPack()">
+        <input class="inp" x-model="f.pack" placeholder="z. B. Gaskocher" enterkeyhint="done">
+        <select class="inp" x-model="f.packOwner">
+          <template x-for="m in meta.members" :key="m"><option :value="m" x-text="m" :selected="m===f.packOwner"></option></template>
+        </select>
+        <button class="btn btn-ink" type="submit" aria-label="Hinzufügen"><span class="ic" x-html="ic('plus')"></span></button>
+      </form>
+      <div class="chips">
+        <button class="chip sm" :class="packFilter==='all' && 'on'" @click="packFilter='all'">Alle</button>
+        <button class="chip sm" :class="packFilter==='me' && 'on'" @click="packFilter='me'" x-show="me">Meins</button>
+        <button class="chip sm" :class="packFilter==='open' && 'on'" @click="packFilter='open'">Offen</button>
+      </div>
+      <div class="list">
+        <div class="empty" x-show="!packView.length">Nichts auf der Liste.</div>
+        <template x-for="i in packView" :key="i.id">
+          <div class="item" :class="i.done && 'done'">
+            <button class="cbx" @click="togglePack(i)" x-html="ic('check')" aria-label="abhaken"></button>
+            <span class="grow" @click="togglePack(i)"><span class="t1" style="display:block" x-text="i.text"></span></span>
+            <span class="tag mono" :class="i.owner===me && 'me'" x-text="i.owner"></span>
+            <button class="del" :class="armed==='p'+i.id && 'armed'" @click="arm('p'+i.id, () => delItem('pack', i.id))">
+              <span x-show="armed!=='p'+i.id" class="ic s" x-html="ic('trash')"></span><span x-show="armed==='p'+i.id">Weg?</span>
+            </button>
+          </div>
+        </template>
+      </div>
+    </div>
+  </template>
+
+  <!-- Shopping -->
+  <template x-if="listTab==='shop'">
+    <div class="view" style="animation:none">
+      <form class="adder" @submit.prevent="addShop()">
+        <input class="inp" x-model="f.shop" placeholder="z. B. Brot & Käse" enterkeyhint="done">
+        <select class="inp" x-model="f.shopCat">
+          <option>Essen</option><option>Getränke</option><option>Sonstiges</option>
+        </select>
+        <button class="btn btn-ink" type="submit" aria-label="Hinzufügen"><span class="ic" x-html="ic('plus')"></span></button>
+      </form>
+      <div class="list">
+        <div class="empty" x-show="!shopView.length">Einkaufsliste ist leer.</div>
+        <template x-for="i in shopView" :key="i.id">
+          <div class="item" :class="i.done && 'done'">
+            <button class="cbx" @click="toggleShop(i)" x-html="ic('check')" aria-label="abhaken"></button>
+            <span class="grow" @click="toggleShop(i)"><span class="t1" style="display:block" x-text="i.text"></span></span>
+            <span class="tag mono" x-text="i.cat"></span>
+            <button class="del" :class="armed==='s'+i.id && 'armed'" @click="arm('s'+i.id, () => delItem('shopping', i.id))">
+              <span x-show="armed!=='s'+i.id" class="ic s" x-html="ic('trash')"></span><span x-show="armed==='s'+i.id">Weg?</span>
+            </button>
+          </div>
+        </template>
+      </div>
+      <button class="btn btn-ghost sm" style="align-self:flex-start" x-show="shop.some(i => i.done)"
+              @click="arm('clearShop', () => clearDone())" x-text="armed==='clearShop' ? 'Sicher? Nochmal tippen' : 'Erledigte entfernen'"></button>
+    </div>
+  </template>
+</section>
+
+<!-- ============ CASH ============ -->
+<section class="view" x-show="tab==='cash'">
+  <div class="receipt">
+    <span class="lbl mono">Gesamt</span>
+    <div class="big" style="margin-top:6px" x-text="eur(total)"></div>
+    <div class="kv mono" style="margin-top:10px"><span>Ø pro Kopf</span><span class="dots"></span><b x-text="eur(meta.members.length ? total / meta.members.length : 0)"></b></div>
+    <div class="kv mono" x-show="me"><span>Dein Saldo</span><span class="dots"></span><b :class="myBalance>=0 ? 'pos' : 'neg'" x-text="eurSigned(myBalance)"></b></div>
+    <div class="perf"></div>
+    <span class="lbl mono">Ausgleich</span>
+    <div style="margin-top:8px">
+      <div class="muted" style="font-size:14px;padding:6px 0" x-show="!settlements.length">Alles ausgeglichen. ✓</div>
+      <template x-for="s in settlements" :key="s.from + s.to">
+        <div class="kv mono" :class="(s.from===me || s.to===me) && 'me'">
+          <span x-text="s.from"></span><span class="arrow">→</span><span x-text="s.to"></span>
+          <span class="dots"></span><b x-text="eur(s.amount)"></b>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <div class="sec-row">
+    <div class="sec"><span class="blaze sm"></span>Ausgaben <span class="count mono" x-text="expenses.length"></span></div>
+    <button class="btn btn-primary sm" @click="openSheet('exp')"><span class="ic s" x-html="ic('plus')"></span>Ausgabe</button>
+  </div>
+  <div class="list" x-show="expenses.length">
+    <template x-for="e in expenses" :key="e.id">
+      <div class="item">
+        <span class="av" :style="avStyle(e.payer)" x-text="initials(e.payer)" style="margin:0;border:0;width:36px;height:36px"></span>
+        <span class="grow">
+          <span class="t1" style="display:block" x-text="e.title"></span>
+          <span class="t2 mono" style="display:block" x-text="e.payer + ' · ' + partsLabel(e)"></span>
+        </span>
+        <span class="amt" x-text="eur(e.amount)"></span>
+        <button class="del" :class="armed==='e'+e.id && 'armed'" @click="arm('e'+e.id, () => delItem('expenses', e.id))">
+          <span x-show="armed!=='e'+e.id" class="ic s" x-html="ic('trash')"></span><span x-show="armed==='e'+e.id">Weg?</span>
         </button>
-    </header>
+      </div>
+    </template>
+  </div>
+  <div class="card empty" x-show="!expenses.length">Noch keine Ausgaben erfasst.</div>
+</section>
 
-    <!-- Hauptinhalt -->
-    <main class="flex-1 overflow-y-auto pb-32 pt-5 px-4 sm:px-6 max-w-3xl mx-auto w-full space-y-5">
-
-        <!-- ================= 1. DASHBOARD ================= -->
-        <div x-show="currentTab === 'dashboard'" class="space-y-5" x-transition.opacity>
-            <div class="bg-gradient-to-br from-appdark-card via-[#0e171255] to-emerald-950/40 border border-emerald-500/20 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-                <div class="absolute -right-6 -bottom-6 text-emerald-900/15 text-9xl pointer-events-none">
-                    <i class="fa-solid fa-route"></i>
-                </div>
-                <div class="relative z-10 space-y-2">
-                    <span class="text-[10px] font-extrabold tracking-widest text-emerald-400 uppercase bg-emerald-900/40 px-2.5 py-1 rounded-lg border border-emerald-700/40">Basecamp 🌲</span>
-                    <h2 class="text-xl font-black text-white tracking-tight" x-text="tripName"></h2>
-                    <p class="text-xs text-zinc-400 leading-relaxed">Alles im Blick für euren gemeinsamen Trip. Routen, Ausgaben und Crew-Updates synchronisieren sich sofort.</p>
-                </div>
-            </div>
-
-            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-5 shadow-xl space-y-3">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-                        <i class="fa-solid fa-bullhorn text-sm"></i> Wichtige Notizen & Infos
-                    </h3>
-                    <button @click="openInfoModal = true" class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-xl font-bold hover:bg-emerald-500/20 transition">Bearbeiten</button>
-                </div>
-                <p class="text-xs text-zinc-300 whitespace-pre-line leading-relaxed bg-black/40 p-4 rounded-2xl border border-appdark-border" x-text="importantInfo || 'Noch keine Notizen hinterlegt.'"></p>
-            </div>
-
-            <div class="grid grid-cols-3 gap-3">
-                <div class="bg-appdark-card border border-appdark-border rounded-2xl p-4 shadow-lg text-center">
-                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Ausgaben</span>
-                    <div class="text-base font-extrabold text-white mt-1.5" x-text="totalExpenses.toFixed(2) + ' €'"></div>
-                </div>
-                <div class="bg-appdark-card border border-appdark-border rounded-2xl p-4 shadow-lg text-center">
-                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Kilometer</span>
-                    <div class="text-base font-extrabold text-emerald-400 mt-1.5" x-text="totalKm + ' km'"></div>
-                </div>
-                <div class="bg-appdark-card border border-appdark-border rounded-2xl p-4 shadow-lg text-center">
-                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Dosenbier</span>
-                    <div class="text-base font-extrabold text-amber-400 mt-1.5" x-text="beerCount"></div>
-                </div>
-            </div>
-
-            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-5 shadow-xl space-y-3">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Schnell-Aktionen</h3>
-                <div class="grid grid-cols-2 gap-3">
-                    <button @click="incrementBeer()" class="bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2.5 transition active:scale-95 font-extrabold text-xs shadow-md">
-                        <i class="fa-solid fa-beer-mug-empty text-sm"></i> +1 Dosenbier
-                    </button>
-                    <button @click="promptAddKm()" class="bg-emerald-600/10 hover:bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 rounded-2xl py-3.5 px-4 flex items-center justify-center gap-2.5 transition active:scale-95 font-extrabold text-xs shadow-md">
-                        <i class="fa-solid fa-route text-sm"></i> + Kilometer
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================= 2. GPX KARTE & STATS ================= -->
-        <div x-show="currentTab === 'gpx'" class="space-y-4" x-transition.opacity>
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-lg font-extrabold text-white">GPX Routen & Karte 🗺️</h2>
-                    <p class="text-xs text-zinc-400">Für alle sichtbar & herunterladbar</p>
-                </div>
-                <button @click="openUploaderModal('gpx')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 cursor-pointer flex items-center gap-2 transition active:scale-95">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> GPX hochladen
-                </button>
-            </div>
-
-            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-3 shadow-xl">
-                <div id="map" class="w-full h-72 rounded-2xl z-10 border border-appdark-border"></div>
-            </div>
-
-            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-5 shadow-xl space-y-3">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Verfügbare Tracks (<span x-text="gpxRoutes.length"></span>)</h3>
-                <template x-if="gpxRoutes.length === 0">
-                    <div class="text-xs text-zinc-500 py-6 text-center">Noch keine GPX-Dateien in der Cloud. Lade als Erster eine hoch!</div>
-                </template>
-                <div class="space-y-3">
-                    <template x-for="route in gpxRoutes" :key="route.id">
-                        <div @click="selectRoute(route)" 
-                             :class="selectedRouteId === route.id ? 'border-emerald-500 bg-emerald-950/20' : 'border-appdark-border bg-black/40'"
-                             class="border rounded-2xl p-4 flex items-center justify-between text-xs cursor-pointer transition hover:border-emerald-600/60 shadow-md">
-                            <div class="flex items-center gap-3.5">
-                                <div class="w-10 h-10 rounded-2xl bg-emerald-900/50 border border-emerald-600/40 flex items-center justify-center text-emerald-400 font-bold shrink-0 shadow-inner">
-                                    <i class="fa-solid fa-map-location-dot"></i>
-                                </div>
-                                <div>
-                                    <div class="font-extrabold text-white text-sm" x-text="route.name"></div>
-                                    <div class="text-[11px] text-emerald-400 font-bold mt-1 flex items-center gap-2">
-                                        <span><i class="fa-solid fa-road"></i> <span x-text="route.distance + ' km'"></span></span>
-                                        <span>•</span>
-                                        <span><i class="fa-solid fa-arrow-trend-up"></i> <span x-text="route.gain + ' m'"></span></span>
-                                        <span>•</span>
-                                        <span><i class="fa-solid fa-arrow-trend-down"></i> <span x-text="route.loss + ' m'"></span></span>
-                                    </div>
-                                    <div class="text-[10px] text-zinc-400 mt-1">Hochgeladen von <span class="text-zinc-200 font-semibold" x-text="route.uploader"></span></div>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2" @click.stop>
-                                <a :href="route.dataUrl" :download="route.name + '.gpx'" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 p-2.5 rounded-xl font-semibold text-xs transition flex items-center gap-1 shadow" title="GPX Herunterladen">
-                                    <i class="fa-solid fa-download"></i>
-                                </a>
-                                <button @click="deleteGpx(route.id)" class="text-zinc-600 hover:text-red-400 p-2.5 transition"><i class="fa-solid fa-trash-can"></i></button>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================= 3. GALERIE ================= -->
-        <div x-show="currentTab === 'photos'" class="space-y-4" x-transition.opacity>
-            <div class="flex items-center justify-between flex-wrap gap-2">
-                <div>
-                    <h2 class="text-lg font-extrabold text-white">Gruppen-Galerie 📸</h2>
-                    <p class="text-xs text-zinc-400">Antippen zum Vergrößern</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <template x-if="photos.length > 0">
-                        <div class="flex items-center gap-2">
-                            <button @click="toggleSelectMode()" :class="isSelectMode ? 'bg-emerald-600 text-white' : 'bg-zinc-800 text-zinc-200'" class="px-3 py-2.5 rounded-2xl text-xs font-bold shadow transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-square-check"></i> <span x-text="isSelectMode ? 'Auswahl beenden' : 'Auswählen'"></span>
-                            </button>
-                            <button x-show="isSelectMode && selectedPhotoIds.length > 0" @click="downloadSelectedPhotos()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2.5 rounded-2xl text-xs font-bold shadow transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-download"></i> Laden (<span x-text="selectedPhotoIds.length"></span>)
-                            </button>
-                        </div>
-                    </template>
-                    <button @click="openUploaderModal('photo')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 cursor-pointer flex items-center gap-2 transition active:scale-95">
-                        <i class="fa-solid fa-camera"></i> Foto hochladen
-                    </button>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                <template x-if="photos.length === 0">
-                    <div class="col-span-full text-center py-16 text-zinc-500 text-xs bg-appdark-card border border-appdark-border rounded-3xl">
-                        Noch keine Fotos hochgeladen. Sei der Erste!
-                    </div>
-                </template>
-                <template x-for="photo in photos" :key="photo.id">
-                    <div class="bg-appdark-card border border-appdark-border rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between group relative">
-                        <!-- Checkbox für Mehrfachauswahl -->
-                        <div x-show="isSelectMode" class="absolute top-3 left-3 z-20">
-                            <input type="checkbox" :value="photo.id" @change="togglePhotoSelection(photo.id)" class="w-6 h-6 rounded-lg text-emerald-600 focus:ring-emerald-500 bg-black border-zinc-700 cursor-pointer">
-                        </div>
-
-                        <div class="relative overflow-hidden cursor-pointer" @click="if(isSelectMode) { togglePhotoSelection(photo.id); } else { activeLightbox = photo.url; }">
-                            <img :src="photo.url" class="w-full h-40 object-cover group-hover:scale-105 transition duration-300">
-                            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                <i class="fa-solid fa-magnifying-glass-plus text-white text-xl drop-shadow-md"></i>
-                            </div>
-                        </div>
-                        <div class="p-3 flex items-center justify-between text-[11px] text-zinc-400 bg-black/50 border-t border-appdark-border">
-                            <span class="font-bold text-zinc-300 truncate max-w-[90px]" x-text="photo.uploader"></span>
-                            <div class="flex items-center gap-2.5">
-                                <a :href="photo.url" download="urlaub-foto.jpg" class="text-emerald-400 hover:text-white p-1.5 transition" title="Herunterladen">
-                                    <i class="fa-solid fa-download"></i>
-                                </a>
-                                <button @click="deletePhoto(photo.id)" class="text-zinc-600 hover:text-red-400 p-1.5 transition"><i class="fa-solid fa-trash-can"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
-
-        <!-- ================= 4. PACKLISTE ================= -->
-        <div x-show="currentTab === 'packlist'" class="space-y-4" x-transition.opacity>
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-lg font-extrabold text-white">Outdoor Packliste 🎒</h2>
-                    <p class="text-xs text-zinc-400">Wer bringt was mit?</p>
-                </div>
-                <button @click="openAddPackModal = true" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 flex items-center gap-2 transition active:scale-95">
-                    <i class="fa-solid fa-plus"></i> Gegenstand
-                </button>
-            </div>
-
-            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-4 shadow-xl divide-y divide-appdark-border">
-                <template x-if="packList.length === 0">
-                    <div class="py-8 text-center text-zinc-500 text-xs">Die Packliste ist aktuell leer.</div>
-                </template>
-                <template x-for="item in packList" :key="item.id">
-                    <div class="py-3 flex items-center justify-between">
-                        <label class="flex items-center space-x-3.5 cursor-pointer flex-1 mr-3">
-                            <input type="checkbox" @change="togglePackItem(item.id)" :checked="item.packed" class="w-5 h-5 rounded-lg text-emerald-600 focus:ring-emerald-500 bg-black border-zinc-700">
-                            <div>
-                                <div :class="item.packed ? 'line-through text-zinc-600' : 'text-white'" class="text-xs font-bold transition" x-text="item.item"></div>
-                                <div class="text-[10px] text-zinc-400 mt-0.5">Besorgt von: <span class="text-emerald-400 font-bold" x-text="item.owner"></span></div>
-                            </div>
-                        </label>
-                        <button @click="deletePackItem(item.id)" class="text-zinc-600 hover:text-red-400 p-2 transition"><i class="fa-solid fa-trash-can text-xs"></i></button>
-                    </div>
-                </template>
-            </div>
-        </div>
-
-        <!-- ================= 5. EINKAUFSLISTE ================= -->
-        <div x-show="currentTab === 'shopping'" class="space-y-4" x-transition.opacity>
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-lg font-extrabold text-white">Einkaufsliste 🛒</h2>
-                    <p class="text-xs text-zinc-400">Proviant & Verpflegung</p>
-                </div>
-                <button @click="openAddShoppingModal = true" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 flex items-center gap-2 transition active:scale-95">
-                    <i class="fa-solid fa-plus"></i> Artikel
-                </button>
-            </div>
-
-            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-4 shadow-xl divide-y divide-appdark-border">
-                <template x-if="shoppingItems.length === 0">
-                    <div class="py-8 text-center text-zinc-500 text-xs">Keine Artikel auf der Einkaufsliste.</div>
-                </template>
-                <template x-for="item in shoppingItems" :key="item.id">
-                    <div class="py-3 flex items-center justify-between">
-                        <label class="flex items-center space-x-3.5 cursor-pointer flex-1 mr-3">
-                            <input type="checkbox" @change="toggleShoppingItem(item.id)" :checked="item.completed" class="w-5 h-5 rounded-lg text-emerald-600 focus:ring-emerald-500 bg-black border-zinc-700">
-                            <div :class="item.completed ? 'line-through text-zinc-600' : 'text-white'" class="text-xs font-semibold transition" x-text="item.name"></div>
-                        </label>
-                        <div class="flex items-center space-x-2.5">
-                            <span class="text-[10px] bg-black/60 border border-appdark-border text-zinc-300 px-2.5 py-1 rounded-xl font-medium" x-text="item.category"></span>
-                            <button @click="deleteShoppingItem(item.id)" class="text-zinc-600 hover:text-red-400 p-2 transition"><i class="fa-solid fa-trash-can text-xs"></i></button>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
-
-        <!-- ================= 6. KOSTEN ================= -->
-        <div x-show="currentTab === 'costs'" class="space-y-4" x-transition.opacity>
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-lg font-extrabold text-white">Kostenaufteilung 💶</h2>
-                    <p class="text-xs text-zinc-400">Splid-Style Ausgleich</p>
-                </div>
-                <button @click="openAddExpenseModal = true" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg shadow-emerald-900/40 flex items-center gap-2 transition active:scale-95">
-                    <i class="fa-solid fa-plus"></i> Ausgabe
-                </button>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3.5">
-                <div class="bg-appdark-card border border-appdark-border rounded-3xl p-4 shadow-xl">
-                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Gesamtausgaben</span>
-                    <div class="text-lg font-extrabold text-white mt-1.5" x-text="totalExpenses.toFixed(2) + ' €'"></div>
-                </div>
-                <div class="bg-appdark-card border border-appdark-border rounded-3xl p-4 shadow-xl">
-                    <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Pro Kopf</span>
-                    <div class="text-lg font-extrabold text-emerald-400 mt-1.5" x-text="perPersonAverage.toFixed(2) + ' €'"></div>
-                </div>
-            </div>
-
-            <div class="bg-appdark-card border border-emerald-500/30 rounded-3xl p-5 shadow-xl space-y-3">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
-                    <i class="fa-solid fa-handshake"></i> Einfachster Ausgleich
-                </h3>
-                <div class="space-y-2.5">
-                    <template x-if="calculateSettlements().length === 0">
-                        <div class="text-xs text-zinc-500 py-3 text-center">Alles perfekt ausgeglichen!</div>
-                    </template>
-                    <template x-for="s in calculateSettlements()">
-                        <div class="bg-black/50 border border-appdark-border rounded-2xl p-3.5 flex items-center justify-between text-xs shadow-inner">
-                            <div class="flex items-center gap-2.5 font-bold text-white">
-                                <span x-text="s.from"></span>
-                                <i class="fa-solid fa-arrow-right text-emerald-500 text-[10px]"></i>
-                                <span x-text="s.to"></span>
-                            </div>
-                            <span class="font-black text-emerald-400 bg-emerald-950/80 border border-emerald-800 px-3 py-1.5 rounded-xl text-xs" x-text="s.amount.toFixed(2) + ' €'"></span>
-                        </div>
-                    </template>
-                </div>
-            </div>
-
-            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-5 shadow-xl space-y-3">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Alle erfassten Ausgaben</h3>
-                <template x-if="expenses.length === 0">
-                    <div class="py-4 text-center text-zinc-500 text-xs">Noch keine Ausgaben eingetragen.</div>
-                </template>
-                <template x-for="exp in expenses" :key="exp.id">
-                    <div class="bg-black/40 border border-appdark-border rounded-2xl p-3.5 flex items-center justify-between text-xs">
-                        <div>
-                            <div class="font-extrabold text-white" x-text="exp.title"></div>
-                            <div class="text-[10px] text-zinc-400 mt-0.5">Bezahlt von <span class="text-emerald-400 font-bold" x-text="exp.payer"></span></div>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <span class="font-extrabold text-white text-sm" x-text="exp.amount.toFixed(2) + ' €'"></span>
-                            <button @click="deleteExpense(exp.id)" class="text-zinc-600 hover:text-red-400 p-1.5 transition"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
-
-        <!-- ================= 7. EINSTELLUNGEN ================= -->
-        <div x-show="currentTab === 'settings'" class="space-y-4" x-transition.opacity>
-            <div class="bg-appdark-card border border-appdark-border rounded-3xl p-6 shadow-2xl space-y-5">
-                <h2 class="text-base font-extrabold text-white flex items-center gap-2.5">
-                    <i class="fa-solid fa-sliders text-emerald-400"></i> Einstellungen & Crew
-                </h2>
-                <div>
-                    <label class="text-xs text-zinc-400 font-bold block mb-1.5">Name des Urlaubs</label>
-                    <input type="text" x-model="tripName" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-emerald-500 shadow-inner">
-                </div>
-                <div>
-                    <label class="text-xs text-zinc-400 font-bold block mb-1.5">Teilnehmer (mit Komma getrennt)</label>
-                    <input type="text" x-model="membersInput" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-emerald-500 shadow-inner">
-                </div>
-
-                <div class="pt-4 border-t border-appdark-border space-y-3.5">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Werte korrigieren (Fehlerbehebung)</h3>
-                    
-                    <div class="flex items-center justify-between bg-black/50 p-3.5 rounded-2xl border border-appdark-border">
-                        <span class="text-xs text-zinc-300 font-bold">Dosenbier-Stand (🍺)</span>
-                        <div class="flex items-center gap-3">
-                            <button @click="if(beerCount > 0) beerCount--; persist();" class="w-8 h-8 bg-zinc-800 text-white rounded-xl font-bold flex items-center justify-center hover:bg-zinc-700 transition">-</button>
-                            <span class="text-xs font-extrabold text-amber-400 w-8 text-center text-sm" x-text="beerCount"></span>
-                            <button @click="beerCount++; persist();" class="w-8 h-8 bg-zinc-800 text-white rounded-xl font-bold flex items-center justify-center hover:bg-zinc-700 transition">+</button>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between bg-black/50 p-3.5 rounded-2xl border border-appdark-border">
-                        <span class="text-xs text-zinc-300 font-bold">Gesamtkilometer (🚴‍♂️)</span>
-                        <div class="flex items-center gap-2">
-                            <input type="number" x-model.number="totalKm" @change="persist()" class="w-24 bg-black border border-appdark-border rounded-xl px-3 py-2 text-xs text-emerald-400 font-bold text-center">
-                            <span class="text-xs text-zinc-400">km</span>
-                        </div>
-                    </div>
-                </div>
-
-                <button @click="saveSettings()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3.5 rounded-2xl font-extrabold text-xs shadow-xl shadow-emerald-900/50 transition active:scale-95">
-                    Änderungen speichern & Cloud aktualisieren
-                </button>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Bottom Navigation Bar -->
-    <nav class="bg-appdark-card/95 backdrop-blur-xl border-t border-appdark-border fixed bottom-0 left-0 right-0 z-40 shadow-2xl">
-        <div class="max-w-3xl mx-auto flex justify-around py-3 px-1">
-            <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'text-emerald-400 font-bold scale-105' : 'text-zinc-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
-                <i class="fa-solid fa-house text-base mb-1"></i>
-                <span class="text-[9px]">Home</span>
-            </button>
-            <button @click="currentTab = 'gpx'; setTimeout(() => { initMap(); }, 150)" :class="currentTab === 'gpx' ? 'text-emerald-400 font-bold scale-105' : 'text-zinc-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
-                <i class="fa-solid fa-map text-base mb-1"></i>
-                <span class="text-[9px]">Karte</span>
-            </button>
-            <button @click="currentTab = 'photos'" :class="currentTab === 'photos' ? 'text-emerald-400 font-bold scale-105' : 'text-zinc-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
-                <i class="fa-solid fa-images text-base mb-1"></i>
-                <span class="text-[9px]">Galerie</span>
-            </button>
-            <button @click="currentTab = 'packlist'" :class="currentTab === 'packlist' ? 'text-emerald-400 font-bold scale-105' : 'text-zinc-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
-                <i class="fa-solid fa-suitcase text-base mb-1"></i>
-                <span class="text-[9px]">Packliste</span>
-            </button>
-            <button @click="currentTab = 'shopping'" :class="currentTab === 'shopping' ? 'text-emerald-400 font-bold scale-105' : 'text-zinc-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
-                <i class="fa-solid fa-cart-shopping text-base mb-1"></i>
-                <span class="text-[9px]">Einkauf</span>
-            </button>
-            <button @click="currentTab = 'costs'" :class="currentTab === 'costs' ? 'text-emerald-400 font-bold scale-105' : 'text-zinc-400 font-medium'" class="flex flex-col items-center flex-1 py-1 transition">
-                <i class="fa-solid fa-euro-sign text-base mb-1"></i>
-                <span class="text-[9px]">Kosten</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Lightbox Modal für Fotos -->
-    <div x-show="activeLightbox" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3" style="display: none;" @click="activeLightbox = null">
-        <div class="relative max-w-4xl w-full max-h-full flex flex-col items-center">
-            <button @click="activeLightbox = null" class="absolute -top-12 right-0 text-white bg-zinc-800 hover:bg-zinc-700 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            <img :src="activeLightbox" class="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl border border-appdark-border">
-        </div>
+<!-- ============ SETTINGS ============ -->
+<section class="view" x-show="tab==='settings'">
+  <div class="card" style="display:flex;flex-direction:column;gap:16px">
+    <div class="field">
+      <label>Name der Tour</label>
+      <form class="adder" @submit.prevent="saveTripName()">
+        <input class="inp" x-model="f.tripName">
+        <button class="btn btn-ink" type="submit" aria-label="Speichern"><span class="ic" x-html="ic('check')"></span></button>
+      </form>
     </div>
-
-    <!-- Upload-Modal mit Uploader-Auswahl -->
-    <div x-show="openUploadModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
-        <div @click.outside="openUploadModal = false" class="bg-appdark-card border border-appdark-border rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
-            <h3 class="text-sm font-extrabold text-white" x-text="uploadType === 'gpx' ? 'GPX-Route hochladen' : 'Foto hochladen'"></h3>
-            <div>
-                <label class="text-xs text-zinc-400 font-bold block mb-1.5">Wer lädt das hoch?</label>
-                <select x-model="selectedUploader" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
-                    <template x-for="m in members"><option :value="m" x-text="m"></option></template>
-                </select>
-            </div>
-            <div>
-                <label class="text-xs text-zinc-400 font-bold block mb-1.5">Datei auswählen</label>
-                <input type="file" id="dynamicFileInput" :accept="uploadType === 'gpx' ? '.gpx' : 'image/*'" class="w-full bg-black border border-appdark-border rounded-2xl p-3 text-xs text-zinc-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500">
-            </div>
-            <div class="flex space-x-3 pt-2">
-                <button @click="openUploadModal = false" class="flex-1 bg-zinc-800 text-zinc-300 py-3 rounded-2xl text-xs font-bold">Abbrechen</button>
-                <button @click="processUpload()" class="flex-1 bg-emerald-600 text-white py-3 rounded-2xl text-xs font-bold shadow-lg">Hochladen</button>
-            </div>
-        </div>
+    <div class="field">
+      <label>Ich bin</label>
+      <div class="chips">
+        <template x-for="m in meta.members" :key="m">
+          <button class="chip" :class="m===me && 'on'" @click="setMe(m)" x-text="m"></button>
+        </template>
+      </div>
     </div>
+  </div>
 
-    <!-- Weitere Modals (Infos, Packliste, Einkauf, Ausgaben) -->
-    <div x-show="openInfoModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
-        <div @click.outside="openInfoModal = false" class="bg-appdark-card border border-appdark-border rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
-            <h3 class="text-sm font-extrabold text-white">Wichtige Infos & Notizen bearbeiten</h3>
-            <textarea x-model="importantInfo" rows="4" class="w-full bg-black border border-appdark-border rounded-2xl p-4 text-xs text-white focus:outline-none focus:border-emerald-500"></textarea>
-            <div class="flex space-x-3 pt-2">
-                <button @click="openInfoModal = false" class="flex-1 bg-zinc-800 text-zinc-300 py-3 rounded-2xl text-xs font-bold">Abbrechen</button>
-                <button @click="saveInfo()" class="flex-1 bg-emerald-600 text-white py-3 rounded-2xl text-xs font-bold shadow-lg">Speichern</button>
-            </div>
-        </div>
+  <div class="card" style="display:flex;flex-direction:column;gap:14px">
+    <div class="sec"><span class="blaze sm"></span>Crew</div>
+    <div class="chips">
+      <template x-for="m in meta.members" :key="m">
+        <span class="member-chip">
+          <span class="av" :style="avStyle(m)" x-text="initials(m)"></span><span x-text="m"></span>
+          <button :class="armed==='m'+m && 'armed'" @click="arm('m'+m, () => removeMember(m))" aria-label="entfernen"><span class="ic s" x-html="ic('x')"></span></button>
+        </span>
+      </template>
     </div>
+    <form class="adder" @submit.prevent="addMember()">
+      <input class="inp" x-model="f.member" placeholder="Name hinzufügen">
+      <button class="btn btn-ink" type="submit" aria-label="Hinzufügen"><span class="ic" x-html="ic('plus')"></span></button>
+    </form>
+    <p class="muted" style="font-size:12px;line-height:1.5">Entfernte Leute bleiben in alten Ausgaben drin, damit die Abrechnung stimmt.</p>
+  </div>
 
-    <div x-show="openAddPackModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
-        <div @click.outside="openAddPackModal = false" class="bg-appdark-card border border-appdark-border rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
-            <h3 class="text-sm font-extrabold text-white">Gegenstand zur Packliste</h3>
-            <input type="text" x-model="newPack.item" placeholder="z.B. Gaskocher" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
-            <select x-model="newPack.owner" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
-                <option value="" disabled selected>Wer bringt es mit?</option>
-                <template x-for="m in members"><option :value="m" x-text="m"></option></template>
-            </select>
-            <div class="flex space-x-3 pt-2">
-                <button @click="openAddPackModal = false" class="flex-1 bg-zinc-800 text-zinc-300 py-3 rounded-2xl text-xs font-bold">Abbrechen</button>
-                <button @click="addPackItem()" class="flex-1 bg-emerald-600 text-white py-3 rounded-2xl text-xs font-bold shadow-lg">Hinzufügen</button>
-            </div>
-        </div>
+  <div class="card">
+    <div class="sec" style="margin-bottom:12px"><span class="blaze sm"></span>Speicher</div>
+    <div style="height:10px;border-radius:99px;background:var(--paper-2);overflow:hidden">
+      <div style="height:100%;background:var(--signal);border-radius:99px" :style="'width:' + Math.max(1, usedPct) + '%'"></div>
     </div>
-
-    <div x-show="openAddShoppingModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
-        <div @click.outside="openAddShoppingModal = false" class="bg-appdark-card border border-appdark-border rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
-            <h3 class="text-sm font-extrabold text-white">Artikel zur Einkaufsliste</h3>
-            <input type="text" x-model="newShopping.name" placeholder="z.B. Brot & Käse" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
-            <select x-model="newShopping.category" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
-                <option value="Getränke">Getränke</option>
-                <option value="Essen">Essen</option>
-                <option value="Sonstiges">Sonstiges</option>
-            </select>
-            <div class="flex space-x-3 pt-2">
-                <button @click="openAddShoppingModal = false" class="flex-1 bg-zinc-800 text-zinc-300 py-3 rounded-2xl text-xs font-bold">Abbrechen</button>
-                <button @click="addShoppingItem()" class="flex-1 bg-emerald-600 text-white py-3 rounded-2xl text-xs font-bold shadow-lg">Hinzufügen</button>
-            </div>
-        </div>
+    <div class="mono" style="font-size:12px;color:var(--ink-2);margin-top:8px;display:flex;justify-content:space-between">
+      <span x-text="usedLabel()"></span><span x-text="photos.length + ' Fotos'"></span>
     </div>
+  </div>
 
-    <div x-show="openAddExpenseModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="display: none;">
-        <div @click.outside="openAddExpenseModal = false" class="bg-appdark-card border border-appdark-border rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
-            <h3 class="text-sm font-extrabold text-white">Ausgabe erfassen</h3>
-            <input type="text" x-model="newExpense.title" placeholder="Wofür?" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
-            <input type="number" step="0.01" x-model.number="newExpense.amount" placeholder="Betrag in €" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
-            <select x-model="newExpense.payer" class="w-full bg-black border border-appdark-border rounded-2xl px-4 py-3 text-xs text-white focus:border-emerald-500">
-                <template x-for="m in members"><option :value="m" x-text="m"></option></template>
-            </select>
-            <div class="flex space-x-3 pt-2">
-                <button @click="openAddExpenseModal = false" class="flex-1 bg-zinc-800 text-zinc-300 py-3 rounded-2xl text-xs font-bold">Abbrechen</button>
-                <button @click="addExpense()" class="flex-1 bg-emerald-600 text-white py-3 rounded-2xl text-xs font-bold shadow-lg">Speichern</button>
-            </div>
-        </div>
+  <div class="card">
+    <div class="sec" style="margin-bottom:6px"><span class="blaze sm"></span>Korrekturen</div>
+    <div class="set-row">
+      <span>Dosen</span>
+      <div class="stepper">
+        <button class="icon-btn" @click="beerFix(-1)">−</button>
+        <b x-text="meta.beerCount"></b>
+        <button class="icon-btn" @click="beerFix(1)">+</button>
+      </div>
     </div>
+    <div class="set-row">
+      <span>Kilometer gesamt</span>
+      <form class="row-gap" @submit.prevent="setKm()">
+        <input class="inp mono" style="width:110px;height:42px;text-align:right" inputmode="decimal" x-model="f.kmSet" :placeholder="meta.totalKm">
+        <button class="icon-btn" type="submit"><span class="ic s" x-html="ic('check')"></span></button>
+      </form>
+    </div>
+  </div>
+</section>
 
-    <!-- JavaScript Controller -->
-    <script>
-        let mapInstance = null;
-        let routeLayerGroup = null;
+</main>
 
-        function appData() {
-            return {
-                currentTab: 'dashboard',
-                tripName: 'Alpen-Gravel & Wandertour',
-                members: ['Fabian', 'Luis', 'Tobias', 'Max', 'Tim'],
-                membersInput: 'Fabian, Luis, Tobias, Max, Tim',
-                beerCount: 18,
-                totalKm: 145,
-                importantInfo: '',
-                openInfoModal: false,
-                openAddPackModal: false,
-                openAddShoppingModal: false,
-                openAddExpenseModal: false,
-                openUploadModal: false,
-                uploadType: 'gpx',
-                selectedUploader: 'Fabian',
-                activeLightbox: null,
-                isSelectMode: false,
-                selectedPhotoIds: [],
-                newPack: { item: '', owner: '' },
-                packList: [],
-                shoppingItems: [],
-                newShopping: { name: '', category: 'Essen' },
-                expenses: [],
-                newExpense: { title: '', amount: '', payer: 'Fabian' },
-                photos: [],
-                gpxRoutes: [],
-                selectedRouteId: null,
-                toast: { show: false, message: '' },
+<!-- ============ ACTION BAR (Foto-Auswahl) ============ -->
+<div class="actionbar" x-show="tab==='photos' && selecting && sel.length" x-transition>
+  <span x-text="sel.length + ' ausgewählt'"></span>
+  <button class="btn btn-primary sm" @click="prepareSelected()"><span class="ic s" x-html="ic('download')"></span>Speichern</button>
+</div>
 
-                showToast(msg) {
-                    this.toast.message = msg;
-                    this.toast.show = true;
-                    setTimeout(() => { this.toast.show = false; }, 2500);
-                },
+<!-- ============ NAV ============ -->
+<nav class="nav">
+  <template x-for="t in navTabs" :key="t.id">
+    <button :class="tab===t.id && 'on'" @click="go(t.id)">
+      <span class="ic" x-html="ic(t.icon)"></span><span x-text="t.label"></span>
+    </button>
+  </template>
+</nav>
 
-                initApp() {
-                    if (window.cloudState) {
-                        this.applyCloudState(window.cloudState);
-                    }
-                    window.syncAlpineData = () => {
-                        if (window.cloudState) {
-                            this.applyCloudState(window.cloudState);
-                        }
-                    };
-                },
+<!-- ============ SHEETS ============ -->
+<div class="scrim" x-show="sheet" x-transition.opacity @click="sheet !== 'me' && (sheet = null)"></div>
+<div class="sheet" x-show="sheet" x-transition:enter="sh-anim" x-transition:enter-start="sh-off" x-transition:leave="sh-anim" x-transition:leave-end="sh-off">
+  <div class="grab"></div>
 
-                applyCloudState(state) {
-                    this.tripName = state.tripName || this.tripName;
-                    if (state.members && Array.isArray(state.members)) {
-                        this.members = state.members;
-                        this.membersInput = this.members.join(', ');
-                    }
-                    this.beerCount = state.beerCount ?? this.beerCount;
-                    this.totalKm = state.totalKm ?? this.totalKm;
-                    this.importantInfo = state.importantInfo || this.importantInfo;
-                    this.packList = state.packList || this.packList;
-                    this.shoppingItems = state.shoppingItems || this.shoppingItems;
-                    this.expenses = state.expenses || this.expenses;
-                    this.photos = state.photos || this.photos;
-                    this.gpxRoutes = state.gpxRoutes || this.gpxRoutes;
-                    if(this.members.length > 0 && !this.members.includes(this.selectedUploader)) {
-                        this.selectedUploader = this.members[0];
-                    }
-                },
+  <!-- Identität -->
+  <template x-if="sheet==='me'">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <h3>Wer bist du?</h3>
+      <p class="hint">Einmal auswählen – danach weiß die App, wer hochlädt, bezahlt und was du mitbringst. Gilt nur auf diesem Gerät.</p>
+      <div class="me-grid">
+        <template x-for="m in meta.members" :key="m">
+          <button :class="m===me && 'on'" @click="setMe(m)">
+            <span class="av" :style="avStyle(m)" x-text="initials(m)"></span><span x-text="m"></span>
+          </button>
+        </template>
+      </div>
+    </div>
+  </template>
 
-                persist() {
-                    window.cloudState.tripName = this.tripName;
-                    window.cloudState.members = this.members;
-                    window.cloudState.beerCount = this.beerCount;
-                    window.cloudState.totalKm = this.totalKm;
-                    window.cloudState.importantInfo = this.importantInfo;
-                    window.cloudState.packList = this.packList;
-                    window.cloudState.shoppingItems = this.shoppingItems;
-                    window.cloudState.expenses = this.expenses;
-                    window.cloudState.photos = this.photos;
-                    window.cloudState.gpxRoutes = this.gpxRoutes;
-                    if (window.saveToCloud) window.saveToCloud();
-                },
+  <!-- Kilometer -->
+  <template x-if="sheet==='km'">
+    <form style="display:flex;flex-direction:column;gap:16px" @submit.prevent="addKm()">
+      <h3>Kilometer dazu</h3>
+      <input class="inp mono" style="height:64px;font-size:28px;font-weight:600" inputmode="decimal" x-model="f.km" placeholder="0" x-init="$nextTick(() => $el.focus())">
+      <div class="chips">
+        <template x-for="v in [10,25,50,80]" :key="v"><button type="button" class="chip" @click="f.km = String(v)" x-text="'+' + v"></button></template>
+      </div>
+      <button class="btn btn-primary block" type="submit">Hinzufügen</button>
+    </form>
+  </template>
 
-                saveSettings() {
-                    this.members = this.membersInput.split(',').map(m => m.trim()).filter(m => m.length > 0);
-                    this.persist();
-                    this.showToast('Einstellungen & Crew gespeichert!');
-                },
+  <!-- Notiz -->
+  <template x-if="sheet==='note'">
+    <form style="display:flex;flex-direction:column;gap:16px" @submit.prevent="saveNote()">
+      <h3>Briefing</h3>
+      <textarea class="inp" rows="6" x-model="f.note" placeholder="Treffpunkt, Zeiten, Pflichtausrüstung …"></textarea>
+      <button class="btn btn-primary block" type="submit">Speichern</button>
+    </form>
+  </template>
 
-                saveInfo() {
-                    this.openInfoModal = false;
-                    this.persist();
-                    this.showToast('Notizen aktualisiert!');
-                },
+  <!-- Ausgabe -->
+  <template x-if="sheet==='exp'">
+    <form style="display:flex;flex-direction:column;gap:16px" @submit.prevent="addExpense()">
+      <h3>Neue Ausgabe</h3>
+      <div class="field"><label>Wofür</label><input class="inp" x-model="f.exp.title" placeholder="z. B. Hütte, Tanken"></div>
+      <div class="field"><label>Betrag in €</label><input class="inp mono" inputmode="decimal" x-model="f.exp.amount" placeholder="0,00" style="font-size:20px;font-weight:600"></div>
+      <div class="field">
+        <label>Bezahlt von</label>
+        <div class="chips">
+          <template x-for="m in meta.members" :key="m"><button type="button" class="chip" :class="f.exp.payer===m && 'on'" @click="f.exp.payer=m" x-text="m"></button></template>
+        </div>
+      </div>
+      <div class="field">
+        <label>Aufgeteilt auf <span x-text="'(' + f.exp.parts.length + ')'"></span></label>
+        <div class="chips">
+          <template x-for="m in meta.members" :key="m"><button type="button" class="chip" :class="f.exp.parts.includes(m) && 'on'" @click="togglePart(m)" x-text="m"></button></template>
+        </div>
+      </div>
+      <button class="btn btn-primary block" type="submit">Speichern</button>
+    </form>
+  </template>
 
-                incrementBeer() {
-                    this.beerCount++;
-                    this.persist();
-                    this.showToast('Dosenbier gezählt! 🍺');
-                },
+  <!-- Fotos speichern -->
+  <template x-if="sheet==='save'">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <h3 x-text="prepared.length === 1 ? 'Foto bereit' : prepared.length + ' Fotos bereit'"></h3>
+      <p class="hint" x-text="'Originalqualität · ' + fmtMB(prepared.reduce((s, f) => s + f.size, 0))"></p>
+      <p class="hint">Auf dem Handy öffnet sich das Teilen-Menü – dort „Bilder sichern“ wählen.</p>
+      <button class="btn btn-primary block" @click="savePrepared()"><span class="ic" x-html="ic('download')"></span>Speichern</button>
+    </div>
+  </template>
+</div>
 
-                promptAddKm() {
-                    const kmToAdd = prompt('Wie viele Kilometer kamen hinzu?', '15');
-                    if(kmToAdd && !isNaN(kmToAdd)) {
-                        this.totalKm += Number(kmToAdd);
-                        this.persist();
-                        this.showToast(kmToAdd + ' km hinzugefügt!');
-                    }
-                },
+<!-- ============ LIGHTBOX ============ -->
+<div class="lb" x-show="lb" x-transition.opacity @keydown.window.escape="lb = null" @keydown.window.arrow-right="lb && lbStep(1)" @keydown.window.arrow-left="lb && lbStep(-1)">
+  <template x-if="lb">
+    <div style="display:contents">
+      <div class="lb-top">
+        <span class="mono" style="font-size:12px;opacity:.7" x-text="(lb.i+1) + ' / ' + photos.length + ' · ' + (photos[lb.i] ? photos[lb.i].uploader : '')"></span>
+        <button class="icon-btn" @click="lb = null" aria-label="Schließen"><span class="ic" x-html="ic('x')"></span></button>
+      </div>
+      <div class="lb-img" @touchstart.passive="tx = $event.touches[0].clientX" @touchend="swipe($event)">
+        <button class="lb-nav l" @click="lbStep(-1)" aria-label="Zurück"></button>
+        <img :src="lb.src" alt="">
+        <button class="lb-nav r" @click="lbStep(1)" aria-label="Weiter"></button>
+      </div>
+      <div class="lb-bot">
+        <button class="lb-btn" @click="lbSave()"><span class="ic s" x-html="ic('download')"></span><span x-text="photos[lb.i] && photos[lb.i].osize ? 'Original · ' + fmtMB(photos[lb.i].osize) : 'Speichern'"></span></button>
+        <button class="lb-btn" :class="armed==='lb' && 'armed'" @click="arm('lb', () => lbDelete())">
+          <span class="ic s" x-html="ic('trash')"></span><span x-text="armed==='lb' ? 'Wirklich?' : 'Löschen'"></span>
+        </button>
+      </div>
+    </div>
+  </template>
+</div>
 
-                openUploaderModal(type) {
-                    this.uploadType = type;
-                    if(this.members.length > 0) this.selectedUploader = this.members[0];
-                    this.openUploadModal = true;
-                },
+<div class="toast" x-show="toastOn" x-transition.opacity x-text="toastMsg"></div>
 
-                processUpload() {
-                    const fileInput = document.getElementById('dynamicFileInput');
-                    if(!fileInput || !fileInput.files[0]) return;
-                    const file = fileInput.files[0];
-                    const reader = new FileReader();
+<input type="file" accept="image/*" multiple hidden x-ref="photoIn" @change="uploadPhotos($event)">
+<input type="file" hidden x-ref="gpxIn" @change="uploadGpx($event)">
 
-                    if(this.uploadType === 'photo') {
-                        reader.onload = (e) => {
-                            this.photos.unshift({
-                                id: Date.now(),
-                                url: e.target.result,
-                                uploader: this.selectedUploader
-                            });
-                            this.persist();
-                            this.openUploadModal = false;
-                            this.showToast('Foto erfolgreich hochgeladen! 📸');
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        reader.onload = (e) => {
-                            const gpxText = e.target.result;
-                            const parsedData = parseGpxText(gpxText);
+<!-- ============ LOGIK ============ -->
+<script type="module">
+import Alpine from 'https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/module.esm.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  doc, collection, query, orderBy, onSnapshot, getDoc, setDoc, updateDoc,
+  writeBatch, increment, arrayUnion, arrayRemove, Bytes
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-                            // Wir speichern nur eine reduzierte Punktemenge in der Cloud, um Speicher-Limits zu umgehen
-                            this.gpxRoutes.unshift({
-                                id: Date.now(),
-                                name: file.name.replace('.gpx', ''),
-                                dataUrl: 'data:text/xml;charset=utf-8,' + encodeURIComponent(gpxText),
-                                coords: parsedData.coords,
-                                distance: parsedData.distance,
-                                gain: parsedData.gain,
-                                loss: parsedData.loss,
-                                uploader: this.selectedUploader
-                            });
-                            this.persist();
-                            this.openUploadModal = false;
-                            this.showToast('GPX-Route analysiert & hochgeladen!');
-                            setTimeout(() => { initMap(); }, 200);
-                        };
-                        reader.readAsText(file);
-                    }
-                },
+/* ---------- Firebase ---------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyCADq9e0SKGhSYTjEADOdJbcVYZVkDFLO0",
+  authDomain: "outdoortripapp-650d1.firebaseapp.com",
+  projectId: "outdoortripapp-650d1",
+  storageBucket: "outdoortripapp-650d1.firebasestorage.app",
+  messagingSenderId: "586028344149",
+  appId: "1:586028344149:web:c8f1bc05139aa628c9c5dc"
+};
+const fbApp = initializeApp(firebaseConfig);
+// Offline-Cache: funktioniert auch im Funkloch, synct sobald wieder Netz da ist
+const db = initializeFirestore(fbApp, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+});
 
-                toggleSelectMode() {
-                    this.isSelectMode = !this.isSelectMode;
-                    if (!this.isSelectMode) this.selectedPhotoIds = [];
-                },
+const TRIP_ID = 'alpen-gravel';
+const root = doc(db, 'trips', TRIP_ID);
+const col = name => collection(root, name);
+const LEGACY = doc(db, 'grouptrip_outdoor', 'daten');
+const CHUNK = 900_000;                 // Zeichen pro Datei-Stück (< 1 MB Firestore-Limit)
+const OCHUNK = 1_000_000;              // Bytes pro Original-Stück (binär, < 1 MB Firestore-Limit)
+const FREE_MB = 1024;                  // Gratis-Speicher Firestore (Spark)
+const DEFAULT_MEMBERS = ['Fabian', 'Luis', 'Tobias', 'Max', 'Tim'];
 
-                togglePhotoSelection(id) {
-                    if (this.selectedPhotoIds.includes(id)) {
-                        this.selectedPhotoIds = this.selectedPhotoIds.filter(item => item !== id);
-                    } else {
-                        this.selectedPhotoIds.push(id);
-                    }
-                },
+let app = null;
+const fail = e => { console.error(e); app && app.toast('Speichern fehlgeschlagen'); };
 
-                downloadSelectedPhotos() {
-                    const selected = this.photos.filter(p => this.selectedPhotoIds.includes(p.id));
-                    selected.forEach((photo, index) => {
-                        setTimeout(() => {
-                            const a = document.createElement('a');
-                            a.href = photo.url;
-                            a.download = `urlaub-foto-${index + 1}.jpg`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        }, index * 250);
-                    });
-                    this.showToast(selected.length + ' Fotos werden heruntergeladen...');
-                    this.isSelectMode = false;
-                    this.selectedPhotoIds = [];
-                },
+/* ---------- Helfer ---------- */
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const lsGet = k => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+const toCents = v => Math.round(parseFloat(String(v).replace(',', '.')) * 100);
+const EUR = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' });
+const slug = s => (s || 'tour').toLowerCase().replace(/[^a-z0-9äöüß]+/g, '-').replace(/^-|-$/g, '');
 
-                deletePhoto(id) {
-                    this.photos = this.photos.filter(p => p.id !== id);
-                    this.persist();
-                },
+const PALETTE = ['#C8553D', '#2F4A3A', '#3E5C76', '#A9802F', '#6B4E71', '#4F7A4A', '#8C5A3C', '#2E6F73'];
+const hash = s => { let h = 7; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
 
-                deleteGpx(id) {
-                    this.gpxRoutes = this.gpxRoutes.filter(r => r.id !== id);
-                    if(this.selectedRouteId === id) this.selectedRouteId = null;
-                    this.persist();
-                    setTimeout(() => { initMap(); }, 200);
-                },
+const ICONS = {
+  home: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/>',
+  map: '<path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5L9 4Z"/><path d="M9 4v13.5M15 6.5V20"/>',
+  image: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-10 9"/>',
+  list: '<path d="M10 6h11M10 12h11M10 18h11"/><path d="m3 6 1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/>',
+  wallet: '<rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="15" r="1.2" fill="currentColor"/><path d="M6 6V5a1 1 0 0 1 1-1h10"/>',
+  sliders: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+  upload: '<path d="M12 16V5M7 10l5-5 5 5M5 20h14"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  edit: '<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>',
+  route: '<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/>'
+};
 
-                selectRoute(route) {
-                    this.selectedRouteId = route.id;
-                    if(mapInstance && route.coords && route.coords.length > 0) {
-                        if(routeLayerGroup) mapInstance.removeLayer(routeLayerGroup);
-                        routeLayerGroup = L.layerGroup().addTo(mapInstance);
+/* ---------- Höhenlinien für den Hero (aus dem Tournamen generiert) ---------- */
+function makeContours(seed) {
+  let h = hash(seed) || 1;
+  const rnd = () => { h ^= h << 13; h >>>= 0; h ^= h >> 17; h ^= h << 5; h >>>= 0; return h / 4294967296; };
+  const cx = 270 + rnd() * 90, cy = 50 + rnd() * 80, p = [rnd() * 6, rnd() * 6, rnd() * 6];
+  let out = '';
+  for (let k = 1; k <= 15; k++) {
+    const R = k * 21; let d = '';
+    for (let j = 0; j <= 120; j++) {
+      const t = j / 120 * Math.PI * 2;
+      const r = R * (1 + .17 * Math.sin(3 * t + p[0] + k * .18) + .09 * Math.sin(5 * t + p[1]) + .05 * Math.sin(7 * t + p[2] - k * .1));
+      d += (j ? 'L' : 'M') + (cx + r * Math.cos(t)).toFixed(1) + ' ' + (cy + r * Math.sin(t) * .78).toFixed(1);
+    }
+    out += `<path d="${d}Z"${k % 5 === 0 ? ' class="idx"' : ''}/>`;
+  }
+  return out;
+}
 
-                        const polyline = L.polyline(route.coords, { color: '#10b981', weight: 4 }).addTo(routeLayerGroup);
-                        mapInstance.fitBounds(polyline.getBounds(), { padding: [30, 30] });
-                    }
-                },
+/* ---------- Dateien in Stücken in Firestore ablegen (kostenlos, kein Storage nötig) ---------- */
+function putBlob(batch, parentId, str) {
+  const n = Math.max(1, Math.ceil(str.length / CHUNK));
+  for (let i = 0; i < n; i++) {
+    batch.set(doc(col('blobs'), `${parentId}_${i}`), { p: parentId, i, d: str.slice(i * CHUNK, (i + 1) * CHUNK) });
+  }
+  return n;
+}
+function delBlobs(batch, parentId, n) {
+  for (let i = 0; i < (n || 1); i++) batch.delete(doc(col('blobs'), `${parentId}_${i}`));
+}
+const blobCache = new Map();
+async function getBlob(parentId, n) {
+  if (blobCache.has(parentId)) return blobCache.get(parentId);
+  const parts = await Promise.all(Array.from({ length: n || 1 }, (_, i) => getDoc(doc(col('blobs'), `${parentId}_${i}`))));
+  const str = parts.map(s => (s.exists() ? s.data().d : '')).join('');
+  if (!str) throw new Error('Datei nicht gefunden');
+  blobCache.set(parentId, str);
+  return str;
+}
 
-                addPackItem() {
-                    if(!this.newPack.item.trim() || !this.newPack.owner) return;
-                    this.packList.unshift({ id: Date.now(), ...this.newPack, packed: false });
-                    this.newPack.item = '';
-                    this.newPack.owner = '';
-                    this.openAddPackModal = false;
-                    this.persist();
-                    this.showToast('Gegenstand hinzugefügt');
-                },
-                togglePackItem(id) {
-                    const item = this.packList.find(i => i.id === id);
-                    if(item) item.packed = !item.packed;
-                    this.persist();
-                },
-                deletePackItem(id) {
-                    this.packList = this.packList.filter(i => i.id !== id);
-                    this.persist();
-                },
+/* ---------- Bilder komprimieren ---------- */
+const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+function toJpeg(img, max, q) {
+  const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+  const w = Math.round(img.naturalWidth * s), h = Math.round(img.naturalHeight * s);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  c.getContext('2d').drawImage(img, 0, 0, w, h);
+  return { url: c.toDataURL('image/jpeg', q), w, h };
+}
+// Original wird unverändert (volle Auflösung, inkl. EXIF) binär in Stücken gespeichert.
+// Zusätzlich: Ansichtsversion (schnelles Blättern) + Vorschaubild (Galerie).
+async function savePhoto(src, uploader, id = uid(), ts = Date.now(), file = null) {
+  const img = await loadImg(src);
+  const view = toJpeg(img, 2048, 0.8);    // fürs Anschauen in der App, lädt auch im Funkloch zügig
+  const thumb = toJpeg(img, 520, 0.7);    // ~40 KB für die Galerie
+  const meta = { uploader, ts, w: img.naturalWidth, h: img.naturalHeight, thumb: thumb.url, dsize: view.url.length };
 
-                addShoppingItem() {
-                    if(!this.newShopping.name.trim()) return;
-                    this.shoppingItems.unshift({ id: Date.now(), name: this.newShopping.name, category: this.newShopping.category, completed: false });
-                    this.newShopping.name = '';
-                    this.openAddShoppingModal = false;
-                    this.persist();
-                    this.showToast('Artikel hinzugefügt');
-                },
-                toggleShoppingItem(id) {
-                    const item = this.shoppingItems.find(i => i.id === id);
-                    if(item) item.completed = !item.completed;
-                    this.persist();
-                },
-                deleteShoppingItem(id) {
-                    this.shoppingItems = this.shoppingItems.filter(i => i.id !== id);
-                    this.persist();
-                },
+  let b = writeBatch(db), inBatch = 0;
+  meta.n = putBlob(b, id, view.url);
+  if (file) {
+    const buf = new Uint8Array(await file.arrayBuffer());
+    meta.on = Math.ceil(buf.length / OCHUNK);
+    meta.osize = buf.length; meta.otype = file.type || 'image/jpeg'; meta.oname = file.name || '';
+    for (let i = 0; i < meta.on; i++) {
+      if (inBatch >= 7) { b.commit().catch(fail); b = writeBatch(db); inBatch = 0; }  // Request-Limit 10 MB
+      b.set(doc(col('orig'), `${id}_${i}`), { p: id, i, b: Bytes.fromUint8Array(buf.subarray(i * OCHUNK, (i + 1) * OCHUNK)) });
+      inBatch++;
+    }
+  }
+  b.set(doc(col('photos'), id), meta);    // Foto-Eintrag zuletzt → erscheint erst, wenn alles drin ist
+  blobCache.set(id, view.url);
+  b.commit().catch(fail);                 // nicht awaiten: offline wird später synchronisiert
+}
+async function getOriginal(p) {
+  if (!p.on) return null;
+  const parts = await Promise.all(Array.from({ length: p.on }, (_, i) => getDoc(doc(col('orig'), `${p.id}_${i}`))));
+  if (parts.some(s => !s.exists())) throw new Error('Original unvollständig');
+  return new Blob(parts.map(s => s.data().b.toUint8Array()), { type: p.otype || 'image/jpeg' });
+}
+const fmtMB = bytes => (bytes / 1048576).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' MB';
+function dataUrlToFile(url, name) {
+  const [head, b64] = url.split(',');
+  const mime = head.match(/:(.*?);/)[1];
+  const bin = atob(b64); const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new File([arr], name, { type: mime });
+}
+function saveFiles(files) {
+  const mobile = matchMedia('(pointer:coarse)').matches;
+  if (mobile && navigator.canShare && navigator.canShare({ files })) {
+    navigator.share({ files }).catch(() => {});
+    return;
+  }
+  files.forEach((f, i) => setTimeout(() => {
+    const u = URL.createObjectURL(f), a = document.createElement('a');
+    a.href = u; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(u), 4000);
+  }, i * 350));
+}
 
-                get totalExpenses() {
-                    return this.expenses.reduce((sum, e) => sum + e.amount, 0);
-                },
-                get perPersonAverage() {
-                    return this.members.length ? this.totalExpenses / this.members.length : 0;
-                },
+/* ---------- GPX ---------- */
+function haversine(a, b) {
+  const R = 6371e3, r = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+}
+function parseGpx(text) {
+  const xml = new DOMParser().parseFromString(text, 'application/xml');
+  if (xml.getElementsByTagName('parsererror').length) throw new Error('Keine gültige GPX-Datei');
+  let nodes = [...xml.getElementsByTagName('trkpt')];
+  if (nodes.length < 2) nodes = [...xml.getElementsByTagName('rtept')];
+  if (nodes.length < 2) throw new Error('Keine Track-Punkte in der Datei gefunden');
 
-                calculateSettlements() {
-                    const balances = {};
-                    this.members.forEach(m => balances[m] = 0);
-                    const avg = this.perPersonAverage;
+  const pts = []; let dist = 0, prev = null;
+  for (const n of nodes) {
+    const lat = parseFloat(n.getAttribute('lat')), lon = parseFloat(n.getAttribute('lon'));
+    if (!isFinite(lat) || !isFinite(lon)) continue;
+    const e = n.getElementsByTagName('ele')[0];
+    const ele = e ? parseFloat(e.textContent) : NaN;
+    const p = { lat, lon, ele: isFinite(ele) ? ele : null };
+    if (prev) dist += haversine(prev, p);
+    p.d = dist; pts.push(p); prev = p;
+  }
+  // Höhenmeter mit 3-m-Schwelle (filtert GPS-Rauschen, sonst viel zu hohe Werte)
+  let gain = 0, loss = 0, ref = null, minE = Infinity, maxE = -Infinity;
+  for (const p of pts) {
+    if (p.ele == null) continue;
+    minE = Math.min(minE, p.ele); maxE = Math.max(maxE, p.ele);
+    if (ref == null) { ref = p.ele; continue; }
+    const diff = p.ele - ref;
+    if (diff >= 3) { gain += diff; ref = p.ele; } else if (diff <= -3) { loss -= diff; ref = p.ele; }
+  }
+  // Auf ~1500 Punkte ausdünnen, als flaches Zahlen-Array [lat, lon, ele, km, …]
+  const step = dist / 1500; const geo = []; let last = -Infinity;
+  pts.forEach((p, i) => {
+    if (i === 0 || i === pts.length - 1 || p.d - last >= step) {
+      geo.push(+p.lat.toFixed(5), +p.lon.toFixed(5), p.ele == null ? null : Math.round(p.ele), +(p.d / 1000).toFixed(3));
+      last = p.d;
+    }
+  });
+  const nameNode = xml.querySelector('trk > name, rte > name, metadata > name');
+  return {
+    name: nameNode ? nameNode.textContent.trim() : '',
+    distance: +(dist / 1000).toFixed(1), gain: Math.round(gain), loss: Math.round(loss),
+    minEle: isFinite(minE) ? Math.round(minE) : null, maxEle: isFinite(maxE) ? Math.round(maxE) : null, geo
+  };
+}
 
-                    this.expenses.forEach(e => {
-                        if (balances[e.payer] !== undefined) balances[e.payer] += e.amount;
-                    });
+/* ---------- Karte ---------- */
+let map = null, routeLayer = null; const tiles = {};
+const toLL = g => { const o = []; for (let i = 0; i + 1 < g.length; i += 4) o.push([g[i], g[i + 1]]); return o; };
+function ensureMap(a) {
+  if (map) { map.invalidateSize(); return; }
+  map = L.map('map', { zoomControl: false }).setView([47.27, 11.39], 8);
+  tiles.topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+    subdomains: 'abc', maxZoom: 17, attribution: '© <a href="https://opentopomap.org">OpenTopoMap</a> · © OpenStreetMap'
+  });
+  tiles.clean = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd', maxZoom: 19, attribution: '© OpenStreetMap · © CARTO'
+  });
+  tiles[a.mapLayer].addTo(map);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  routeLayer = L.layerGroup().addTo(map);
+  setTimeout(() => map.invalidateSize(), 60);
+}
+function drawRoutes(a, fit) {
+  if (!map) return;
+  routeLayer.clearLayers();
+  const sig = getComputedStyle(document.documentElement).getPropertyValue('--signal').trim() || '#FF4F1A';
+  const all = []; let selLine = null;
+  a.routes.forEach(r => {
+    if (r.id === a.selRouteId) return;
+    const ll = toLL(r.geo || []); if (ll.length < 2) return;
+    all.push(...ll);
+    L.polyline(ll, { color: '#1F2A24', weight: 3, opacity: .6, dashArray: '1 7', lineCap: 'round' })
+      .on('click', () => a.selectRoute(r.id)).addTo(routeLayer);
+  });
+  const s = a.routes.find(r => r.id === a.selRouteId);
+  if (s) {
+    const ll = toLL(s.geo || []);
+    if (ll.length > 1) {
+      all.push(...ll);
+      L.polyline(ll, { color: '#fff', weight: 9, opacity: .95 }).addTo(routeLayer);
+      selLine = L.polyline(ll, { color: sig, weight: 5 }).addTo(routeLayer);
+      L.circleMarker(ll[0], { radius: 6, color: '#fff', weight: 3, fillColor: '#16181A', fillOpacity: 1 }).addTo(routeLayer);
+      L.circleMarker(ll[ll.length - 1], { radius: 6, color: '#fff', weight: 3, fillColor: sig, fillOpacity: 1 }).addTo(routeLayer);
+    }
+  }
+  if (fit) {
+    if (selLine) map.fitBounds(selLine.getBounds(), { padding: [30, 30] });
+    else if (all.length) map.fitBounds(L.latLngBounds(all), { padding: [30, 30] });
+  }
+}
 
-                    const debtors = [];
-                    const creditors = [];
+/* ---------- Einmalige Übernahme der alten Daten ---------- */
+let migrating = false;
+async function migrate(a) {
+  const old = await getDoc(LEGACY);
+  const o = old.exists() ? old.data() : {};
+  const members = Array.isArray(o.members) && o.members.length ? o.members : DEFAULT_MEMBERS;
+  await setDoc(root, {
+    tripName: o.tripName || 'Alpen-Gravel & Wandertour', members,
+    importantInfo: o.importantInfo ?? '', beerCount: o.beerCount ?? 0, totalKm: o.totalKm ?? 0, v: 2
+  }, { merge: true });
+  // Feste IDs = alte IDs → mehrfaches Ausführen erzeugt keine Duplikate
+  const b = writeBatch(db);
+  (o.expenses || []).forEach(e => b.set(doc(col('expenses'), String(e.id)),
+    { title: e.title, amount: Math.round(Number(e.amount) * 100), payer: e.payer, parts: members, ts: e.id }));
+  (o.packList || []).forEach(i => b.set(doc(col('pack'), String(i.id)),
+    { text: i.item, owner: i.owner || '', done: !!i.packed, ts: i.id }));
+  (o.shoppingItems || []).forEach(i => b.set(doc(col('shopping'), String(i.id)),
+    { text: i.name, cat: i.category || 'Sonstiges', done: !!i.completed, ts: i.id }));
+  await b.commit();
+  for (const p of (o.photos || [])) {
+    try { await savePhoto(p.url, p.uploader || '?', String(p.id), p.id); } catch (e) { console.error(e); }
+  }
+  if (old.exists()) a.toast('Alte Daten übernommen');
+}
 
-                    Object.keys(balances).forEach(m => {
-                        const diff = balances[m] - avg;
-                        if (diff < -0.01) debtors.push({ name: m, amount: -diff });
-                        else if (diff > 0.01) creditors.push({ name: m, amount: diff });
-                    });
+/* ---------- Live-Verbindung ---------- */
+function connect(a) {
+  onSnapshot(root, { includeMetadataChanges: true }, snap => {
+    a.sync = snap.metadata.fromCache ? 'offline' : snap.metadata.hasPendingWrites ? 'pending' : 'live';
+    if (!snap.exists()) {
+      if (!snap.metadata.fromCache && !migrating) { migrating = true; migrate(a).catch(fail); }
+      return;
+    }
+    a.meta = { ...a.meta, ...snap.data() };
+    if (!a.f.tripName) a.f.tripName = a.meta.tripName;
+    if (!a.me || !a.meta.members.includes(a.me)) { if (!a.sheet && a.meta.members.length) a.sheet = 'me'; }
+    else if (!a.f.packOwner) a.f.packOwner = a.me;
+  }, err => { console.error(err); a.sync = 'error'; a.toast('Keine Datenbank-Verbindung – Firestore-Regeln prüfen'); });
 
-                    debtors.sort((a, b) => b.amount - a.amount);
-                    creditors.sort((a, b) => b.amount - a.amount);
+  const live = (name, key) => onSnapshot(query(col(name), orderBy('ts', 'desc')), s => {
+    a[key] = s.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (key === 'routes') {
+      if (!a.routes.some(r => r.id === a.selRouteId)) a.selRouteId = a.routes[0] ? a.routes[0].id : null;
+      drawRoutes(a, !a._fitted && a.tab === 'map' && (a._fitted = true));
+    }
+    if (key === 'photos' && a.lb && a.lb.i >= a.photos.length) a.lb = null;
+  }, err => console.error(name, err));
 
-                    const settlements = [];
-                    let d = 0, c = 0;
+  live('expenses', 'expenses'); live('pack', 'pack'); live('shopping', 'shop');
+  live('photos', 'photos'); live('routes', 'routes');
+}
 
-                    while (d < debtors.length && c < creditors.length) {
-                        const debtor = debtors[d];
-                        const creditor = creditors[c];
-                        const amount = Math.min(debtor.amount, creditor.amount);
+/* ---------- Alpine-App ---------- */
+Alpine.data('app', () => ({
+  tab: 'home', listTab: 'pack', packFilter: 'all',
+  meta: { tripName: 'Tourbuch', members: [], importantInfo: '', beerCount: 0, totalKm: 0 },
+  expenses: [], pack: [], shop: [], photos: [], routes: [],
+  me: lsGet('tb_me') || '',
+  sync: 'connecting', sheet: null, busy: null, armed: null, bump: false,
+  toastOn: false, toastMsg: '',
+  selecting: false, sel: [], prepared: [], lb: null, tx: 0,
+  selRouteId: null, mapLayer: 'topo', _fitted: false,
+  f: { km: '', kmSet: '', note: '', pack: '', packOwner: '', shop: '', shopCat: 'Essen', member: '', tripName: '',
+       exp: { title: '', amount: '', payer: '', parts: [] } },
+  titles: { home: 'Basislager', map: 'Karte', photos: 'Galerie', lists: 'Listen', cash: 'Kasse', settings: 'Einstellungen' },
+  navTabs: [
+    { id: 'home', label: 'Basis', icon: 'home' }, { id: 'map', label: 'Karte', icon: 'map' },
+    { id: 'photos', label: 'Fotos', icon: 'image' }, { id: 'lists', label: 'Listen', icon: 'list' },
+    { id: 'cash', label: 'Kasse', icon: 'wallet' }
+  ],
 
-                        settlements.push({ from: debtor.name, to: creditor.name, amount: amount });
+  init() {
+    app = this;
+    connect(this);
+    this.$watch('tab', t => {
+      if (t === 'map') this.$nextTick(() => { ensureMap(this); drawRoutes(this, true); this._fitted = true; });
+    });
+  },
 
-                        debtor.amount -= amount;
-                        creditor.amount -= amount;
+  /* Anzeige-Helfer */
+  ic(n) { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[n] || ''}</svg>`; },
+  initials(n) { return String(n || '?').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase(); },
+  avStyle(n) { return `background:${PALETTE[hash(n) % PALETTE.length]}`; },
+  eur(c) { return EUR.format((c || 0) / 100); },
+  eurSigned(c) { return (c > 0 ? '+' : '') + EUR.format((c || 0) / 100); },
+  fmtNum(v) { return Number(v || 0).toLocaleString('de-DE', { maximumFractionDigits: 1 }); },
+  get syncLabel() { return { live: 'Live', offline: 'Offline', pending: 'Sync …', connecting: 'Verbinde', error: 'Fehler' }[this.sync]; },
+  get contours() { return makeContours(this.meta.tripName); },
+  toast(m) { this.toastMsg = m; this.toastOn = true; clearTimeout(this._tt); this._tt = setTimeout(() => this.toastOn = false, 2600); },
+  go(t) { this.tab = t; this.selecting = false; this.sel = []; window.scrollTo({ top: 0 }); },
+  arm(key, fn) {
+    if (this.armed === key) { this.armed = null; fn(); return; }
+    this.armed = key; clearTimeout(this._at); this._at = setTimeout(() => this.armed = null, 2600);
+  },
+  openSheet(s) {
+    if (s === 'note') this.f.note = this.meta.importantInfo || '';
+    if (s === 'km') this.f.km = '';
+    if (s === 'exp') this.f.exp = { title: '', amount: '', payer: this.me || this.meta.members[0] || '', parts: [...this.meta.members] };
+    this.sheet = s;
+  },
+  setMe(m) { this.me = m; lsSet('tb_me', m); this.f.packOwner = m; if (this.sheet === 'me') this.sheet = null; },
 
-                        if (debtor.amount < 0.01) d++;
-                        if (creditor.amount < 0.01) c++;
-                    }
-                    return settlements;
-                },
+  /* Basislager */
+  addBeer() {
+    this.bump = false; requestAnimationFrame(() => this.bump = true);
+    navigator.vibrate && navigator.vibrate(12);
+    updateDoc(root, { beerCount: increment(1) }).catch(fail);   // atomar: keine verlorenen Klicks
+  },
+  beerFix(d) { if (d < 0 && this.meta.beerCount <= 0) return; updateDoc(root, { beerCount: increment(d) }).catch(fail); },
+  addKm() {
+    const v = parseFloat(String(this.f.km).replace(',', '.'));
+    if (!(v > 0)) return;
+    updateDoc(root, { totalKm: increment(Math.round(v * 10) / 10) }).catch(fail);
+    this.sheet = null; this.toast(`+${this.fmtNum(v)} km`);
+  },
+  setKm() {
+    const v = parseFloat(String(this.f.kmSet).replace(',', '.'));
+    if (!(v >= 0)) return;
+    updateDoc(root, { totalKm: Math.round(v * 10) / 10 }).catch(fail); this.f.kmSet = ''; this.toast('Kilometer gesetzt');
+  },
+  saveNote() { updateDoc(root, { importantInfo: this.f.note.trim() }).catch(fail); this.sheet = null; this.toast('Briefing gespeichert'); },
+  saveTripName() { const n = this.f.tripName.trim(); if (!n) return; updateDoc(root, { tripName: n }).catch(fail); this.toast('Name gespeichert'); },
+  addMember() {
+    const n = this.f.member.trim(); if (!n) return;
+    if (this.meta.members.includes(n)) { this.toast(n + ' ist schon dabei'); return; }
+    updateDoc(root, { members: arrayUnion(n) }).catch(fail); this.f.member = '';
+  },
+  removeMember(m) {
+    updateDoc(root, { members: arrayRemove(m) }).catch(fail);
+    if (m === this.me) { this.me = ''; lsSet('tb_me', ''); }
+  },
 
-                addExpense() {
-                    if(!this.newExpense.title.trim() || !this.newExpense.amount) return;
-                    this.expenses.unshift({ id: Date.now(), ...this.newExpense, amount: Number(this.newExpense.amount) });
-                    this.newExpense.title = '';
-                    this.newExpense.amount = '';
-                    this.openAddExpenseModal = false;
-                    this.persist();
-                    this.showToast('Ausgabe gespeichert');
-                },
-                deleteExpense(id) {
-                    this.expenses = this.expenses.filter(e => e.id !== id);
-                    this.persist();
-                }
-            }
-        }
+  /* Karte */
+  get selRoute() { return this.routes.find(r => r.id === this.selRouteId) || null; },
+  get profile() {
+    const r = this.selRoute; if (!r || !r.geo || r.minEle == null) return null;
+    const g = r.geo, W = 600, H = 150, total = g[g.length - 1] || 1;
+    const min = r.minEle, span = Math.max(r.maxEle - min, 20);
+    let d = '';
+    for (let i = 0; i + 3 < g.length; i += 4) {
+      if (g[i + 2] == null) continue;
+      d += (d ? 'L' : 'M') + (g[i + 3] / total * W).toFixed(1) + ' ' + (H - 6 - (g[i + 2] - min) / span * (H - 20)).toFixed(1);
+    }
+    return d ? { line: d, area: d + `L${W} ${H}L0 ${H}Z`, min: r.minEle, max: r.maxEle } : null;
+  },
+  selectRoute(id) { this.selRouteId = id; drawRoutes(this, true); window.scrollTo({ top: 0, behavior: 'smooth' }); },
+  setLayer(l) { if (!map) return; Object.values(tiles).forEach(t => map.removeLayer(t)); tiles[l].addTo(map); this.mapLayer = l; },
+  async uploadGpx(ev) {
+    const file = ev.target.files[0]; ev.target.value = '';
+    if (!file) return;
+    this.busy = { label: 'GPX wird gelesen', done: 0, total: 1 };
+    try {
+      const text = await file.text();
+      if (text.length > 7e6) throw new Error('GPX-Datei zu groß (max. ca. 7 MB)');
+      const r = parseGpx(text);
+      const id = uid(), b = writeBatch(db);
+      const n = putBlob(b, id, text);
+      b.set(doc(col('routes'), id), {
+        name: r.name || file.name.replace(/\.gpx$/i, ''), uploader: this.me || '?', ts: Date.now(),
+        distance: r.distance, gain: r.gain, loss: r.loss, minEle: r.minEle, maxEle: r.maxEle, geo: r.geo, n
+      });
+      blobCache.set(id, text);
+      b.commit().catch(fail);
+      this.selRouteId = id;
+      this.toast(`Route hinzugefügt · ${this.fmtNum(r.distance)} km`);
+    } catch (e) { this.toast(e.message || 'GPX konnte nicht gelesen werden'); }
+    this.busy = null;
+  },
+  async downloadGpx(r) {
+    try {
+      this.busy = { label: 'GPX wird geladen', done: 0, total: 1 };
+      const text = await getBlob(r.id, r.n);
+      saveFiles([new File([text], slug(r.name) + '.gpx', { type: 'application/gpx+xml' })]);
+    } catch (e) { this.toast('Download fehlgeschlagen'); }
+    this.busy = null;
+  },
+  delRoute(r) {
+    const b = writeBatch(db); b.delete(doc(col('routes'), r.id)); delBlobs(b, r.id, r.n);
+    b.commit().catch(fail); blobCache.delete(r.id); this.toast('Route gelöscht');
+  },
 
-        // Robuster GPX-Parser mit Downsampling (damit Firestore nicht überlastet wird)
-        function parseGpxText(gpxString) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(gpxString, "text/xml");
-            const pts = xmlDoc.querySelectorAll("trkpt, rtept, wpt");
-            const coords = [];
-            let distance = 0;
-            let gain = 0;
-            let loss = 0;
-            let prevPt = null;
-            let counter = 0;
+  /* Fotos */
+  async uploadPhotos(ev) {
+    const files = [...ev.target.files]; ev.target.value = '';
+    if (!files.length) return;
+    const by = this.me || this.meta.members[0] || '?'; let ok = 0;
+    for (let k = 0; k < files.length; k++) {
+      this.busy = { label: 'Fotos werden hochgeladen', done: k, total: files.length };
+      if (files[k].size > 40 * 1048576) { this.toast(files[k].name + ' ist größer als 40 MB'); continue; }
+      const url = URL.createObjectURL(files[k]);
+      try { await savePhoto(url, by, uid(), Date.now() + k, files[k]); ok++; } catch (e) { console.error(e); }
+      URL.revokeObjectURL(url);
+    }
+    this.busy = null;
+    this.toast(ok === files.length ? `${ok} Foto${ok > 1 ? 's' : ''} hochgeladen` : `${ok} von ${files.length} hochgeladen`);
+  },
+  toggleSelect() { this.selecting = !this.selecting; this.sel = []; },
+  tapPhoto(p, i) {
+    if (!this.selecting) return this.openLb(i);
+    const k = this.sel.indexOf(p.id); k >= 0 ? this.sel.splice(k, 1) : this.sel.push(p.id);
+  },
+  photoName(p, k) {
+    if (p.oname) return p.oname;
+    return `${slug(this.meta.tripName)}-${(k ?? 0) + 1}-${p.id}.jpg`;
+  },
+  async photoFile(p, k) {
+    const orig = await getOriginal(p).catch(e => { console.error(e); return null; });
+    if (orig) return new File([orig], this.photoName(p, k), { type: orig.type });
+    return dataUrlToFile(await getBlob(p.id, p.n), this.photoName(p, k));   // ältere Fotos ohne Original
+  },
+  async prepareSelected(list = this.photos.filter(p => this.sel.includes(p.id))) {
+    const files = [];
+    for (let k = 0; k < list.length; k++) {
+      this.busy = { label: 'Originale laden', done: k, total: list.length };
+      try { files.push(await this.photoFile(list[k], this.photos.indexOf(list[k]))); } catch (e) { console.error(e); }
+    }
+    this.busy = null;
+    if (!files.length) { this.toast('Fotos konnten nicht geladen werden'); return; }
+    this.prepared = files; this.sheet = 'save';     // zweiter Tipp nötig, damit iOS das Teilen-Menü erlaubt
+  },
+  savePrepared() { saveFiles(this.prepared); this.prepared = []; this.sheet = null; this.selecting = false; this.sel = []; },
+  openLb(i) {
+    const p = this.photos[i]; if (!p) return;
+    this.lb = { i, src: blobCache.get(p.id) || p.thumb, full: blobCache.get(p.id) || null };
+    if (!this.lb.full) getBlob(p.id, p.n).then(url => { if (this.lb && this.lb.i === i) { this.lb.src = url; this.lb.full = url; } }).catch(() => {});
+  },
+  lbStep(d) { const n = this.photos.length; if (n) this.openLb((this.lb.i + d + n) % n); },
+  swipe(e) { const dx = e.changedTouches[0].clientX - this.tx; if (Math.abs(dx) > 50) this.lbStep(dx < 0 ? 1 : -1); },
+  lbSave() { const p = this.photos[this.lb.i]; if (p) this.prepareSelected([p]); },
+  lbDelete() {
+    const p = this.photos[this.lb.i]; if (!p) return;
+    const b = writeBatch(db); b.delete(doc(col('photos'), p.id)); delBlobs(b, p.id, p.n);
+    for (let i = 0; i < (p.on || 0); i++) b.delete(doc(col('orig'), `${p.id}_${i}`));
+    b.commit().catch(fail); blobCache.delete(p.id);
+    this.lb = null;
+    this.toast('Foto gelöscht');
+  },
 
-            pts.forEach(pt => {
-                const lat = parseFloat(pt.getAttribute("lat"));
-                const lon = parseFloat(pt.getAttribute("lon"));
-                if (isNaN(lat) || isNaN(lon)) return;
+  /* Listen */
+  sortList(arr) { return [...arr].sort((a, b) => (a.done - b.done) || (b.ts - a.ts)); },
+  get packView() {
+    let l = this.pack;
+    if (this.packFilter === 'me') l = l.filter(i => i.owner === this.me);
+    if (this.packFilter === 'open') l = l.filter(i => !i.done);
+    return this.sortList(l);
+  },
+  get shopView() { return this.sortList(this.shop); },
+  get packOpen() { return this.pack.filter(i => !i.done).length; },
+  get shopOpen() { return this.shop.filter(i => !i.done).length; },
+  addPack() {
+    const t = this.f.pack.trim(); if (!t) return;
+    setDoc(doc(col('pack')), { text: t, owner: this.f.packOwner || this.me || '', done: false, ts: Date.now() }).catch(fail);
+    this.f.pack = '';
+  },
+  togglePack(i) { updateDoc(doc(col('pack'), i.id), { done: !i.done }).catch(fail); },
+  addShop() {
+    const t = this.f.shop.trim(); if (!t) return;
+    setDoc(doc(col('shopping')), { text: t, cat: this.f.shopCat, done: false, ts: Date.now() }).catch(fail);
+    this.f.shop = '';
+  },
+  toggleShop(i) { updateDoc(doc(col('shopping'), i.id), { done: !i.done }).catch(fail); },
+  clearDone() { const b = writeBatch(db); this.shop.filter(i => i.done).forEach(i => b.delete(doc(col('shopping'), i.id))); b.commit().catch(fail); },
+  delItem(c, id) { const b = writeBatch(db); b.delete(doc(col(c), id)); b.commit().catch(fail); },
 
-                const eleNode = pt.querySelector("ele");
-                const ele = eleNode ? parseFloat(eleNode.textContent) : null;
+  /* Kasse (alles in Cent, keine Rundungsfehler) */
+  get usedBytes() {
+    let b = 0;
+    this.photos.forEach(p => b += (p.osize || 0) + (p.dsize || 0) + (p.thumb ? p.thumb.length : 0));
+    this.routes.forEach(r => b += (r.geo ? r.geo.length * 9 : 0));
+    return b;
+  },
+  get usedPct() { return Math.min(100, this.usedBytes / (FREE_MB * 1048576) * 100); },
+  usedLabel() { return fmtMB(this.usedBytes) + ' von ' + FREE_MB + ' MB'; },
+  fmtMB(b) { return fmtMB(b || 0); },
+  get total() { return this.expenses.reduce((s, e) => s + (e.amount || 0), 0); },
+  get balances() {
+    const b = {}; this.meta.members.forEach(m => b[m] = 0);
+    for (const e of this.expenses) {
+      b[e.payer] = (b[e.payer] || 0) + e.amount;
+      const parts = e.parts && e.parts.length ? e.parts : this.meta.members;
+      if (!parts.length) continue;
+      const share = Math.floor(e.amount / parts.length); const rest = e.amount - share * parts.length;
+      parts.forEach((p, i) => b[p] = (b[p] || 0) - share - (i < rest ? 1 : 0));
+    }
+    return b;
+  },
+  get myBalance() { return this.balances[this.me] || 0; },
+  get settlements() {
+    const deb = [], cred = [];
+    Object.entries(this.balances).forEach(([n, v]) => { if (v < 0) deb.push({ n, v: -v }); else if (v > 0) cred.push({ n, v }); });
+    deb.sort((a, b) => b.v - a.v); cred.sort((a, b) => b.v - a.v);
+    const out = []; let d = 0, c = 0;
+    while (d < deb.length && c < cred.length) {
+      const amt = Math.min(deb[d].v, cred[c].v);
+      if (amt > 0) out.push({ from: deb[d].n, to: cred[c].n, amount: amt });
+      deb[d].v -= amt; cred[c].v -= amt;
+      if (deb[d].v === 0) d++; if (cred[c].v === 0) c++;
+    }
+    return out;
+  },
+  partsLabel(e) {
+    const p = e.parts || [];
+    if (!p.length || this.meta.members.every(m => p.includes(m)) && p.length === this.meta.members.length) return 'für alle';
+    return 'für ' + (p.length <= 2 ? p.join(' & ') : p.length + ' Leute');
+  },
+  togglePart(m) { const p = this.f.exp.parts; const k = p.indexOf(m); k >= 0 ? p.splice(k, 1) : p.push(m); },
+  addExpense() {
+    const e = this.f.exp, amount = toCents(e.amount);
+    if (!e.title.trim()) return this.toast('Wofür war die Ausgabe?');
+    if (!(amount > 0)) return this.toast('Betrag fehlt');
+    if (!e.payer || !e.parts.length) return this.toast('Zahler und Aufteilung wählen');
+    setDoc(doc(col('expenses')), { title: e.title.trim(), amount, payer: e.payer, parts: [...e.parts], ts: Date.now() }).catch(fail);
+    this.sheet = null; this.toast('Ausgabe gespeichert');
+  }
+}));
 
-                // Nur jeden 3. Punkt speichern, spart enorm Speicher in der Cloud bei riesigen Tracks
-                counter++;
-                if (counter % 3 === 0 || counter === 1) {
-                    coords.push([lat, lon]);
-                }
-
-                if (prevPt) {
-                    const R = 6371e3;
-                    const dLat = (lat - prevPt.lat) * Math.PI / 180;
-                    const dLon = (lon - prevPt.lon) * Math.PI / 180;
-                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                              Math.cos(prevPt.lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) *
-                              Math.sin(dLon/2) * Math.sin(dLon/2);
-                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                    distance += R * c;
-
-                    if (ele !== null && prevPt.ele !== null) {
-                        const diff = ele - prevPt.ele;
-                        if (diff > 0) gain += diff;
-                        else loss += Math.abs(diff);
-                    }
-                }
-                prevPt = { lat, lon, ele };
-            });
-
-            return {
-                coords: coords,
-                distance: (distance / 1000).toFixed(1),
-                gain: Math.round(gain),
-                loss: Math.round(loss)
-            };
-        }
-
-        function initMap() {
-            const mapContainer = document.getElementById('map');
-            if (!mapContainer) return;
-            if (mapInstance) {
-                mapInstance.remove();
-                mapInstance = null;
-            }
-            mapInstance = L.map('map').setView([47.3769, 8.5417], 9);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(mapInstance);
-        }
-    </script>
+Alpine.start();
+</script>
 </body>
 </html>
